@@ -1,0 +1,267 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Profile & Settings | ResearchMate</title>
+  <link rel="stylesheet" href="style.css">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+  <style>
+    .profile-page { padding: 28px; }
+    .profile-card {
+      background: var(--card-bg, #fff);
+      border: 1px solid #e5e7eb;
+      border-radius: 14px;
+      padding: 24px;
+      margin-bottom: 22px;
+    }
+    .profile-avatar {
+      width: 90px;
+      height: 90px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      background: #e0e7ff;
+      color: #3730a3;
+      font-size: 30px;
+      font-weight: 700;
+      flex-shrink: 0;
+      overflow: hidden;
+    }
+    .profile-avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .profile-page .form-control,
+    .profile-page .form-select {
+      padding: 11px 12px;
+      border-radius: 9px;
+    }
+    .profile-page .form-label { font-weight: 600; }
+    .profile-muted { color: #64748b; font-size: 13px; }
+    .setting-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 18px;
+      padding: 16px 0;
+      border-bottom: 1px solid #e5e7eb;
+    }
+    .setting-row:last-child { border-bottom: 0; }
+    @media (max-width: 768px) {
+      .profile-page { padding: 16px; }
+      .profile-card { padding: 18px; }
+      .setting-row { align-items: flex-start; }
+    }
+  </style>
+    <link rel="stylesheet" href="theme-overrides.css">
+</head>
+<body>
+
+<main class="container-fluid profile-page">
+  <header class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+    <div>
+      <p class="text-primary fw-semibold mb-1">RESEARCHMATE</p>
+      <h2 class="fw-bold mb-1">Profile & Settings</h2>
+      <p class="text-secondary mb-0">Manage your personal and academic information.</p>
+    </div>
+    <a href="dashboard.html" class="btn btn-outline-secondary">← Dashboard</a>
+  </header>
+
+  <div class="row g-4">
+    <div class="col-lg-4">
+      <section class="profile-card text-center">
+        <div class="profile-avatar mx-auto mb-3" id="avatarPreview">TR</div>
+        <h5 class="fw-bold mb-1" id="profileNamePreview">Taiyab Ur Rahman</h5>
+        <p class="text-secondary mb-2" id="profileEmailPreview">taiyab@example.com</p>
+        <span class="badge text-bg-light">Student</span>
+        <hr>
+        <p class="profile-muted mb-0">
+          Your profile information helps organize your academic research workspace.
+        </p>
+      </section>
+
+      <section class="profile-card">
+        <h6 class="fw-bold mb-3">Account Overview</h6>
+        <div class="setting-row">
+          <div>
+            <div class="fw-semibold">Account type</div>
+            <div class="profile-muted">Current role</div>
+          </div>
+          <span class="badge text-bg-primary">Student</span>
+        </div>
+        <div class="setting-row">
+          <div>
+            <div class="fw-semibold">Profile status</div>
+            <div class="profile-muted">Required fields</div>
+          </div>
+          <span id="profileStatus" class="badge text-bg-warning">Incomplete</span>
+        </div>
+      </section>
+    </div>
+
+    <div class="col-lg-8">
+      <section class="profile-card">
+        <h5 class="fw-bold mb-1">Personal Information</h5>
+        <p class="text-secondary small mb-4">Update your basic profile details.</p>
+
+        <form id="profileForm">
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label for="fullName" class="form-label">Full Name *</label>
+              <input id="fullName" class="form-control" value="Taiyab Ur Rahman" required maxlength="100">
+            </div>
+
+            <div class="col-md-6">
+              <label for="email" class="form-label">Email Address *</label>
+              <input id="email" type="email" class="form-control" value="taiyab@example.com" required maxlength="150">
+            </div>
+
+            <div class="col-md-6">
+              <label for="university" class="form-label">University *</label>
+              <input id="university" class="form-control" placeholder="Enter your university" required maxlength="150">
+            </div>
+
+            <div class="col-md-6">
+              <label for="department" class="form-label">Department *</label>
+              <input id="department" class="form-control" placeholder="e.g. Computer Science" required maxlength="150">
+            </div>
+
+            <div class="col-md-6">
+              <label for="studentId" class="form-label">Student ID (optional)</label>
+              <input id="studentId" class="form-control" placeholder="Enter your student ID" maxlength="50">
+            </div>
+
+            <div class="col-md-6">
+              <label for="studyLevel" class="form-label">Study Level</label>
+              <select id="studyLevel" class="form-select">
+                <option value="">Select study level</option>
+                <option value="Undergraduate">Undergraduate</option>
+                <option value="Graduate">Graduate</option>
+                <option value="Postgraduate">Postgraduate</option>
+                <option value="PhD">PhD</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
+
+            <div class="col-12">
+              <label for="bio" class="form-label">About Me (optional)</label>
+              <textarea id="bio" class="form-control" rows="3" maxlength="500"
+                placeholder="Tell us about your research interests..."></textarea>
+              <div class="profile-muted mt-1">Maximum 500 characters.</div>
+            </div>
+          </div>
+
+          <div class="d-flex flex-wrap gap-2 mt-4">
+            <button class="btn btn-primary" type="submit">Save Changes</button>
+            <button class="btn btn-outline-secondary" type="reset">Reset Form</button>
+          </div>
+          <p id="profileMessage" class="small mt-3 mb-0" aria-live="polite"></p>
+        </form>
+      </section>
+
+      <section class="profile-card">
+        <h5 class="fw-bold mb-1">Preferences</h5>
+        <p class="text-secondary small mb-3">Customize your workspace preferences.</p>
+
+        <div class="setting-row">
+          <div>
+            <div class="fw-semibold">Email notifications</div>
+            <div class="profile-muted">Receive updates about your research workspace.</div>
+          </div>
+          <div class="form-check form-switch">
+            <input class="form-check-input" type="checkbox" id="emailNotifications" checked>
+          </div>
+        </div>
+
+        <div class="setting-row">
+          <div>
+            <div class="fw-semibold">Research tips</div>
+            <div class="profile-muted">Show helpful research tips in your workspace.</div>
+          </div>
+          <div class="form-check form-switch">
+            <input class="form-check-input" type="checkbox" id="researchTips" checked>
+          </div>
+        </div>
+
+        <button id="savePreferences" class="btn btn-outline-primary mt-3" type="button">
+          Save Preferences
+        </button>
+        <p id="preferencesMessage" class="small mt-3 mb-0" aria-live="polite"></p>
+      </section>
+    </div>
+  </div>
+</main>
+
+<script>
+  const profileForm = document.getElementById("profileForm");
+  const profileMessage = document.getElementById("profileMessage");
+  const preferencesMessage = document.getElementById("preferencesMessage");
+
+  const profileFields = [
+    "fullName", "email", "university", "department",
+    "studentId", "studyLevel", "bio"
+  ];
+
+  function updateProfilePreview() {
+    const name = document.getElementById("fullName").value.trim();
+    const email = document.getElementById("email").value.trim();
+    const university = document.getElementById("university").value.trim();
+    const department = document.getElementById("department").value.trim();
+
+    document.getElementById("profileNamePreview").textContent = name || "Your Name";
+    document.getElementById("profileEmailPreview").textContent = email || "No email provided";
+
+    const initials = name.split(/\s+/).filter(Boolean)
+      .slice(0, 2).map(part => part[0].toUpperCase()).join("");
+
+    const avatar = document.getElementById("avatarPreview");
+    avatar.textContent = initials || "?";
+
+    const complete = Boolean(name && email && university && department);
+    const status = document.getElementById("profileStatus");
+    status.textContent = complete ? "Complete" : "Incomplete";
+    status.className = "badge " + (complete ? "text-bg-success" : "text-bg-warning");
+  }
+
+  profileFields.forEach(id => {
+    document.getElementById(id).addEventListener("input", updateProfilePreview);
+    document.getElementById(id).addEventListener("change", updateProfilePreview);
+  });
+
+  profileForm.addEventListener("submit", event => {
+    event.preventDefault();
+
+    if (!profileForm.reportValidity()) return;
+
+    updateProfilePreview();
+    profileMessage.textContent = "Profile updated in the current page demo.";
+    profileMessage.className = "text-success small mt-3 mb-0";
+  });
+
+  profileForm.addEventListener("reset", () => {
+    setTimeout(() => {
+      updateProfilePreview();
+      profileMessage.textContent = "Form reset.";
+      profileMessage.className = "text-secondary small mt-3 mb-0";
+    }, 0);
+  });
+
+  document.getElementById("savePreferences").addEventListener("click", () => {
+    const notifications = document.getElementById("emailNotifications").checked;
+    const tips = document.getElementById("researchTips").checked;
+
+    preferencesMessage.textContent =
+      `Demo preferences updated: Email notifications ${notifications ? "on" : "off"}, research tips ${tips ? "on" : "off"}.`;
+    preferencesMessage.className = "text-success small mt-3 mb-0";
+  });
+
+  updateProfilePreview();
+</script>
+
+    <script src="theme.js"></script>
+</body>
+</html>

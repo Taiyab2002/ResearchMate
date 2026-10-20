@@ -1,0 +1,344 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Citation Generator | ResearchMate</title>
+  <link rel="stylesheet" href="style.css">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    .citation-page { padding: 28px; }
+    .citation-card {
+      background: var(--card-bg, #fff);
+      border: 1px solid #e5e7eb;
+      border-radius: 14px;
+      padding: 22px;
+      margin-bottom: 20px;
+    }
+    .citation-output {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 10px;
+      padding: 16px;
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+      min-height: 70px;
+    }
+    .citation-history-item {
+      border-bottom: 1px solid #e5e7eb;
+      padding: 14px 0;
+    }
+    .citation-history-item:last-child { border-bottom: 0; }
+    .citation-page .form-label { font-weight: 600; }
+    .citation-page .form-control,
+    .citation-page .form-select { border-radius: 9px; padding: 10px 12px; }
+    .citation-muted { color: #64748b; font-size: 14px; }
+    @media (max-width: 768px) {
+      .citation-page { padding: 16px; }
+    }
+  </style>
+    <link rel="stylesheet" href="theme-overrides.css">
+</head>
+<body>
+
+<div class="container-fluid citation-page">
+  <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+    <div>
+      <p class="text-primary fw-semibold mb-1">RESEARCHMATE</p>
+      <h2 class="fw-bold mb-1">Citation Generator</h2>
+      <p class="text-secondary mb-0">Generate and manage your academic citations.</p>
+    </div>
+    <a href="dashboard.html" class="btn btn-outline-secondary">← Dashboard</a>
+  </div>
+
+  <div class="row g-4">
+    <div class="col-lg-5">
+      <section class="citation-card">
+        <h5 class="fw-bold mb-3">Source Information</h5>
+        <form id="citationForm">
+          <div class="mb-3">
+            <label for="sourceType" class="form-label">Source type</label>
+            <select id="sourceType" class="form-select">
+              <option value="journal">Journal Article</option>
+              <option value="book">Book</option>
+              <option value="website">Website</option>
+            </select>
+          </div>
+
+          <div class="mb-3">
+            <label for="authors" class="form-label">Author(s)</label>
+            <input id="authors" class="form-control" placeholder="e.g. John Smith; Jane Doe" required>
+            <div class="citation-muted mt-1">Separate multiple authors with semicolons.</div>
+          </div>
+
+          <div class="mb-3">
+            <label for="title" class="form-label">Title</label>
+            <input id="title" class="form-control" placeholder="Enter source title" required>
+          </div>
+
+          <div class="mb-3">
+            <label for="year" class="form-label">Year</label>
+            <input id="year" type="number" class="form-control" placeholder="e.g. 2025" min="1000" max="9999">
+          </div>
+
+          <div class="mb-3">
+            <label for="publication" class="form-label">Journal / Publisher / Website</label>
+            <input id="publication" class="form-control" placeholder="Publication name">
+          </div>
+
+          <div class="mb-3">
+            <label for="volume" class="form-label">Volume / Issue / Pages (optional)</label>
+            <input id="volume" class="form-control" placeholder="e.g. 12(2), 45–60">
+          </div>
+
+          <div class="mb-3">
+            <label for="doi" class="form-label">DOI or URL (optional)</label>
+            <input id="doi" type="text" class="form-control" placeholder="https://... or DOI">
+          </div>
+
+          <div class="mb-3">
+            <label for="citationStyle" class="form-label">Citation style</label>
+            <select id="citationStyle" class="form-select">
+              <option value="APA">APA (7th edition)</option>
+              <option value="MLA">MLA (9th edition)</option>
+              <option value="IEEE">IEEE</option>
+            </select>
+          </div>
+
+          <button type="submit" class="btn btn-primary w-100">Generate Citation</button>
+        </form>
+      </section>
+    </div>
+
+    <div class="col-lg-7">
+      <section class="citation-card">
+        <div class="d-flex justify-content-between align-items-center gap-2 mb-3">
+          <h5 class="fw-bold mb-0">Generated Citation</h5>
+          <span id="styleBadge" class="badge text-bg-primary">APA</span>
+        </div>
+        <div id="citationOutput" class="citation-output mb-3" aria-live="polite">
+          Your generated citation will appear here.
+        </div>
+        <div class="d-flex flex-wrap gap-2">
+          <button id="copyCitation" class="btn btn-outline-primary" type="button">Copy Citation</button>
+          <button id="saveCitation" class="btn btn-primary" type="button" disabled>Save to History</button>
+        </div>
+        <p id="citationMessage" class="citation-muted mt-3 mb-0" aria-live="polite"></p>
+      </section>
+
+      <section class="citation-card">
+        <div class="d-flex justify-content-between align-items-center gap-2 mb-3">
+          <div>
+            <h5 class="fw-bold mb-1">Citation History</h5>
+            <p class="citation-muted mb-0">Your saved citations in this browser session.</p>
+          </div>
+          <button id="clearHistory" class="btn btn-sm btn-outline-danger" type="button">Clear</button>
+        </div>
+        <div id="citationHistory">
+          <p class="text-secondary mb-0">No citations saved yet.</p>
+        </div>
+      </section>
+    </div>
+  </div>
+</div>
+
+<script>
+  const citationForm = document.getElementById("citationForm");
+  const citationOutput = document.getElementById("citationOutput");
+  const styleBadge = document.getElementById("styleBadge");
+  const citationMessage = document.getElementById("citationMessage");
+  const saveButton = document.getElementById("saveCitation");
+  const historyContainer = document.getElementById("citationHistory");
+
+  let currentCitation = "";
+  let citationHistory = [];
+
+  function getValue(id) {
+    return document.getElementById(id).value.trim();
+  }
+
+  function formatAuthors(authorText, style) {
+    const authors = authorText.split(";").map(a => a.trim()).filter(Boolean);
+
+    if (style === "IEEE") {
+      return authors.map(a => {
+        const parts = a.split(/\s+/);
+        const last = parts.pop();
+        return [...parts.map(p => p[0] + "."), last].join(" ");
+      }).join(", ");
+    }
+
+    if (style === "APA") {
+      return authors.map(a => {
+        const parts = a.split(/\s+/);
+        const last = parts.pop();
+        return `${last}, ${parts.map(p => p[0].toUpperCase() + ".").join(" ")}`;
+      }).join(", ");
+    }
+
+    return authors.join(", ");
+  }
+
+  function buildCitation() {
+    const type = getValue("sourceType");
+    const authorsRaw = getValue("authors");
+    const title = getValue("title");
+    const year = getValue("year") || "n.d.";
+    const publication = getValue("publication");
+    const volume = getValue("volume");
+    let url = getValue("doi");
+    const style = getValue("citationStyle");
+
+    const authors = formatAuthors(authorsRaw, style);
+    if (url && /^10\.\d{4,9}\//i.test(url)) {
+      url = "https://doi.org/" + url;
+    }
+
+    if (style === "APA") {
+      if (type === "book") {
+        return `${authors} (${year}). ${title}. ${publication || "[Publisher not provided]"}.${url ? " " + url : ""}`;
+      }
+      if (type === "website") {
+        return `${authors} (${year}). ${title}. ${publication ? publication + ". " : ""}${url}`;
+      }
+      return `${authors} (${year}). ${title}. ${publication ? publication + (volume ? ", " + volume : "") + ". " : ""}${url}`;
+    }
+
+    if (style === "MLA") {
+      if (type === "book") {
+        return `${authors}. ${title}. ${publication || "[Publisher not provided]"}, ${year}.${url ? " " + url : ""}`;
+      }
+      if (type === "website") {
+        return `${authors}. "${title}." ${publication ? publication + ", " : ""}${year}.${url ? " " + url : ""}`;
+      }
+      return `${authors}. "${title}." ${publication ? publication + (volume ? ", " + volume : "") + ", " : ""}${year}.${url ? " " + url : ""}`;
+    }
+
+    if (type === "book") {
+      return `${authors}, ${title}, ${publication || "[Publisher not provided]"}, ${year}.${url ? " " + url : ""}`;
+    }
+    if (type === "website") {
+      return `${authors}, "${title}," ${publication ? publication + ", " : ""}${year}.${url ? " " + url : ""}`;
+    }
+    return `${authors}, "${title}," ${publication ? publication + (volume ? ", " + volume : "") + ", " : ""}${year}.${url ? " " + url : ""}`;
+  }
+
+  citationForm.addEventListener("submit", function(event) {
+    event.preventDefault();
+
+    if (!citationForm.reportValidity()) return;
+
+    currentCitation = buildCitation();
+    citationOutput.textContent = currentCitation;
+    styleBadge.textContent = getValue("citationStyle");
+    saveButton.disabled = false;
+    citationMessage.textContent = "Citation generated. Please verify the formatting before academic use.";
+  });
+
+  document.getElementById("copyCitation").addEventListener("click", async function() {
+    if (!currentCitation) {
+      citationMessage.textContent = "Generate a citation first.";
+      return;
+    }
+
+    try {
+      await navigator.clipboard.writeText(currentCitation);
+      citationMessage.textContent = "Citation copied!";
+    } catch {
+      const temp = document.createElement("textarea");
+      temp.value = currentCitation;
+      document.body.appendChild(temp);
+      temp.select();
+      const copied = document.execCommand("copy");
+      temp.remove();
+      citationMessage.textContent = copied ? "Citation copied!" : "Copy failed. Please copy the text manually.";
+    }
+  });
+
+  function renderHistory() {
+    historyContainer.replaceChildren();
+
+    if (citationHistory.length === 0) {
+      historyContainer.textContent = "No citations saved yet.";
+      historyContainer.className = "text-secondary";
+      return;
+    }
+
+    historyContainer.className = "";
+
+    citationHistory.forEach((item, index) => {
+      const wrapper = document.createElement("div");
+      wrapper.className = "citation-history-item";
+
+      const heading = document.createElement("div");
+      heading.className = "d-flex justify-content-between align-items-center gap-2 mb-2";
+
+      const badge = document.createElement("span");
+      badge.className = "badge text-bg-light";
+      badge.textContent = item.style;
+
+      const date = document.createElement("small");
+      date.className = "text-secondary";
+      date.textContent = item.date;
+
+      heading.append(badge, date);
+
+      const citation = document.createElement("p");
+      citation.className = "mb-2";
+      citation.textContent = item.text;
+
+      const actions = document.createElement("div");
+      actions.className = "d-flex gap-2";
+
+      const copy = document.createElement("button");
+      copy.className = "btn btn-sm btn-outline-primary";
+      copy.textContent = "Copy";
+      copy.type = "button";
+      copy.addEventListener("click", async () => {
+        try {
+          await navigator.clipboard.writeText(item.text);
+          citationMessage.textContent = "History citation copied.";
+        } catch {
+          citationMessage.textContent = "Copy failed. Select and copy the citation manually.";
+        }
+      });
+
+      const remove = document.createElement("button");
+      remove.className = "btn btn-sm btn-outline-danger";
+      remove.textContent = "Delete";
+      remove.type = "button";
+      remove.addEventListener("click", () => {
+        citationHistory.splice(index, 1);
+        renderHistory();
+      });
+
+      actions.append(copy, remove);
+      wrapper.append(heading, citation, actions);
+      historyContainer.appendChild(wrapper);
+    });
+  }
+
+  saveButton.addEventListener("click", function() {
+    if (!currentCitation) return;
+
+    citationHistory.unshift({
+      text: currentCitation,
+      style: getValue("citationStyle"),
+      date: new Date().toLocaleString()
+    });
+
+    renderHistory();
+    citationMessage.textContent = "Citation saved to this session's history.";
+  });
+
+  document.getElementById("clearHistory").addEventListener("click", function() {
+    citationHistory = [];
+    renderHistory();
+    citationMessage.textContent = "Citation history cleared.";
+  });
+</script>
+
+    <script src="theme.js"></script>
+</body>
+</html>

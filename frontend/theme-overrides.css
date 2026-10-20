@@ -1,0 +1,91 @@
+/* Theme fixes for pages with page-local CSS that previously overrode the shared theme. */
+:root { --rm-page-card: var(--rm-surface); }
+.ai-page, .citation-page, .profile-page { background: transparent !important; color: var(--rm-text) !important; min-height: 100vh; }
+.ai-card, .citation-card, .profile-card, .topic-item, .citation-history-item, .setting-row {
+  background: var(--rm-surface) !important; color: var(--rm-text) !important;
+  border-color: var(--rm-border) !important; box-shadow: var(--rm-shadow);
+  transition: background .3s ease, color .3s ease, border-color .3s ease, transform .25s ease;
+}
+.ai-card:hover, .citation-card:hover, .profile-card:hover { transform: translateY(-2px); }
+.ai-card p, .citation-card p, .profile-card p, .topic-item p,
+.ai-page .form-label, .citation-page .form-label, .profile-page .form-label,
+.ai-page h2, .ai-page h5, .citation-page h2, .citation-page h5,
+.profile-page h2, .profile-page h5 { color: var(--rm-text); }
+.ai-page .text-secondary, .citation-page .text-secondary, .profile-page .text-secondary,
+.citation-muted, .profile-muted { color: var(--rm-muted) !important; }
+.ai-page .form-control, .ai-page .form-select, .citation-page .form-control,
+.citation-page .form-select, .profile-page .form-control, .profile-page .form-select,
+.profile-page input, .profile-page select, .profile-page textarea {
+  background-color: var(--rm-input) !important; color: var(--rm-text) !important;
+  border-color: var(--rm-border) !important;
+}
+.ai-page input::placeholder, .ai-page textarea::placeholder, .citation-page input::placeholder,
+.profile-page input::placeholder, .profile-page textarea::placeholder { color: var(--rm-muted) !important; }
+.ai-page .alert-info { background: color-mix(in srgb, var(--rm-primary) 12%, var(--rm-surface-solid)) !important; color: var(--rm-text) !important; border-color: var(--rm-border) !important; }
+.ai-page .topic-item, .citation-history-item { border-radius: 12px; }
+:root[data-theme="dark"] .ai-page .btn-outline-secondary,
+:root[data-theme="dark"] .citation-page .btn-outline-secondary,
+:root[data-theme="dark"] .profile-page .btn-outline-secondary { color: var(--rm-text) !important; border-color: var(--rm-border) !important; }
+:root[data-theme="dark"] .profile-page hr { border-color: var(--rm-border); }
+@media (prefers-reduced-motion: reduce) {
+  .ai-card, .citation-card, .profile-card, .topic-item { transition: none !important; }
+}
+
+
+/* === Contrast repair for AI Tools, Citations and Profile === */
+:root[data-theme="dark"] body,
+:root[data-theme="hybrid"] body { background-color: var(--rm-bg); color: var(--rm-text); }
+
+:root[data-theme="dark"] .ai-page h1,
+:root[data-theme="dark"] .ai-page h2,
+:root[data-theme="dark"] .ai-page h3,
+:root[data-theme="dark"] .ai-page h4,
+:root[data-theme="dark"] .ai-page h5,
+:root[data-theme="dark"] .citation-page h1,
+:root[data-theme="dark"] .citation-page h2,
+:root[data-theme="dark"] .citation-page h3,
+:root[data-theme="dark"] .citation-page h4,
+:root[data-theme="dark"] .citation-page h5,
+:root[data-theme="dark"] .profile-page h1,
+:root[data-theme="dark"] .profile-page h2,
+:root[data-theme="dark"] .profile-page h3,
+:root[data-theme="dark"] .profile-page h4,
+:root[data-theme="dark"] .profile-page h5 {
+  color: var(--rm-text) !important;
+  -webkit-text-fill-color: var(--rm-text) !important;
+  background: none !important;
+}
+:root[data-theme="dark"] .ai-result,
+:root[data-theme="dark"] .citation-output,
+:root[data-theme="dark"] #topicResult,
+:root[data-theme="dark"] #summaryResult,
+:root[data-theme="dark"] #keywordResult {
+  background: var(--rm-input) !important;
+  color: var(--rm-text) !important;
+  border-color: var(--rm-border) !important;
+}
+:root[data-theme="dark"] .ai-result *,
+:root[data-theme="dark"] .citation-output *,
+:root[data-theme="dark"] #topicResult *,
+:root[data-theme="dark"] #summaryResult *,
+:root[data-theme="dark"] #keywordResult * {
+  color: inherit;
+}
+:root[data-theme="dark"] .keyword-chip {
+  background: rgba(110,231,255,.12) !important;
+  color: var(--rm-text) !important;
+  border-color: var(--rm-border) !important;
+}
+:root[data-theme="dark"] .ai-muted,
+:root[data-theme="dark"] .citation-muted,
+:root[data-theme="dark"] .profile-muted {
+  color: var(--rm-muted) !important;
+}
+:root[data-theme="dark"] .ai-page .btn-outline-primary,
+:root[data-theme="dark"] .citation-page .btn-outline-primary,
+:root[data-theme="dark"] .profile-page .btn-outline-primary {
+  color: var(--rm-primary) !important;
+  border-color: var(--rm-primary) !important;
+}
+:root[data-theme="dark"] .profile-page .badge,
+:root[data-theme="dark"] .citation-page .badge { color: #fff !important; }
