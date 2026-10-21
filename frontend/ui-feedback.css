@@ -1,0 +1,35 @@
+/* ResearchMate interactive feedback: toast, loading states, and tactile buttons */
+.rm-toast-region {
+  position: fixed; top: 20px; right: 20px; z-index: 20000;
+  display: grid; gap: 10px; width: min(360px, calc(100vw - 32px));
+  pointer-events: none;
+}
+.rm-toast {
+  --rm-toast-accent: #6478f5;
+  display: grid; grid-template-columns: 4px 1fr auto; gap: 12px; align-items: stretch;
+  overflow: hidden; pointer-events: auto; border: 1px solid var(--rm-border, rgba(120,130,160,.25));
+  border-radius: 14px; background: var(--rm-surface, #fff); color: var(--rm-text, #202b45);
+  box-shadow: 0 14px 38px rgba(0,0,0,.18); animation: rm-toast-in .24s ease-out both;
+}
+.rm-toast::before { content: ""; background: var(--rm-toast-accent); }
+.rm-toast[data-type="success"] { --rm-toast-accent: #22a06b; }
+.rm-toast[data-type="error"] { --rm-toast-accent: #e5484d; }
+.rm-toast[data-type="warning"] { --rm-toast-accent: #d99a16; }
+.rm-toast[data-type="info"] { --rm-toast-accent: #6478f5; }
+.rm-toast-content { padding: 13px 0; min-width: 0; }
+.rm-toast-title { margin: 0 0 3px; font-size: 13px; font-weight: 750; }
+.rm-toast-message { margin: 0; font-size: 13px; line-height: 1.45; overflow-wrap: anywhere; opacity: .88; }
+.rm-toast-close { align-self: start; margin: 8px 8px 0 0; border: 0; background: transparent; color: inherit; opacity: .65; font-size: 20px; line-height: 1; cursor: pointer; }
+.rm-toast-close:hover { opacity: 1; }
+.rm-toast.rm-toast-out { animation: rm-toast-out .18s ease-in forwards; }
+.rm-button-spinner { display: inline-block; width: 1em; height: 1em; margin-right: .55em; vertical-align: -.12em; border: 2px solid currentColor; border-right-color: transparent; border-radius: 50%; animation: rm-spin .65s linear infinite; }
+.rm-is-loading { cursor: wait !important; opacity: .82; }
+.rm-is-loading .rm-button-spinner { pointer-events: none; }
+button, .btn, .login-btn, .project-view-btn, .create-project-btn { transition: transform .18s ease, box-shadow .18s ease, filter .18s ease, background-color .18s ease; }
+button:not(:disabled):active, .btn:not(:disabled):active { transform: scale(.98); }
+button:disabled, .btn:disabled, button[aria-busy="true"] { cursor: not-allowed; }
+@keyframes rm-spin { to { transform: rotate(360deg); } }
+@keyframes rm-toast-in { from { opacity: 0; transform: translate3d(18px,-5px,0) scale(.98); } to { opacity: 1; transform: translate3d(0,0,0) scale(1); } }
+@keyframes rm-toast-out { to { opacity: 0; transform: translate3d(18px,0,0) scale(.98); } }
+@media (max-width: 480px) { .rm-toast-region { top: 12px; right: 12px; width: calc(100vw - 24px); } }
+@media (prefers-reduced-motion: reduce) { .rm-toast, .rm-toast.rm-toast-out, .rm-button-spinner { animation-duration: .01ms !important; } }

@@ -12,70 +12,435 @@
         rel="stylesheet"
     >
 
-    <!-- Our custom CSS -->
+    <!-- Existing project styles -->
     <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="ui-feedback.css">
+
+    <!-- Login page design -->
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            font-family: Arial, Helvetica, sans-serif;
+            background: #edf2f8;
+        }
+
+        .rm-login-page {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 35px 20px;
+            background:
+                radial-gradient(
+                    circle at 15% 15%,
+                    #f4f6fa 0,
+                    #edf2f8 48%,
+                    #e7eef7 100%
+                );
+        }
+
+        .rm-login-card {
+            display: grid;
+            grid-template-columns: 43% 57%;
+            width: 100%;
+            max-width: 950px;
+            min-height: 465px;
+            overflow: hidden;
+            background: #ffffff;
+            border-radius: 15px;
+            box-shadow: 0 12px 35px rgba(28, 53, 83, 0.13);
+            animation: rm-login-enter 0.55s ease both;
+        }
+
+        /* Left branding panel */
+        .rm-brand-panel {
+            display: flex;
+            flex-direction: column;
+            padding: 38px 34px 30px;
+            color: #ffffff;
+            background: linear-gradient(
+                150deg,
+                #214f79 0%,
+                #183653 100%
+            );
+        }
+
+        .rm-brand-icon {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 36px;
+            height: 36px;
+            margin-bottom: 18px;
+            border-radius: 9px;
+            background: rgba(255, 255, 255, 0.17);
+            color: #ffffff;
+            font-size: 14px;
+            font-weight: 800;
+            letter-spacing: 0.4px;
+        }
+
+        .rm-brand-title {
+            margin: 0 0 8px;
+            color: #ffffff;
+            font-size: 25px;
+            font-weight: 750;
+            letter-spacing: -0.5px;
+        }
+
+        .rm-brand-description {
+            max-width: 300px;
+            margin: 0;
+            color: #d2deeb;
+            font-size: 13px;
+            line-height: 1.65;
+        }
+
+        .rm-brand-features {
+            margin-top: auto;
+            padding: 30px 0 0;
+            list-style: none;
+        }
+
+        .rm-brand-features li {
+            margin: 0 0 10px;
+            color: #e0eaf4;
+            font-size: 12px;
+            line-height: 1.5;
+        }
+
+        .rm-brand-features li::before {
+            content: "✓";
+            margin-right: 9px;
+            color: #a9c9e9;
+            font-weight: 700;
+        }
+
+        /* Right login panel */
+        .rm-form-panel {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 45px 48px;
+            background: #ffffff;
+        }
+
+        .rm-welcome-title {
+            margin: 0 0 5px;
+            color: #183653;
+            font-size: 22px;
+            font-weight: 750;
+            letter-spacing: -0.35px;
+        }
+
+        .rm-welcome-description {
+            margin: 0 0 25px;
+            color: #8a9ab0;
+            font-size: 12px;
+        }
+
+        .rm-login-form .form-label {
+            margin-bottom: 7px;
+            color: #344b66;
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .rm-login-form .form-control {
+            min-height: 42px;
+            padding: 10px 13px;
+            border: 1px solid #dce5ef;
+            border-radius: 7px;
+            background: #fbfcfe;
+            color: #243b53;
+            font-size: 13px;
+            box-shadow: none;
+            transition:
+                border-color 0.2s ease,
+                box-shadow 0.2s ease,
+                background 0.2s ease;
+        }
+
+        .rm-login-form .form-control::placeholder {
+            color: #a0adbd;
+        }
+
+        .rm-login-form .form-control:focus {
+            border-color: #356c9e;
+            background: #ffffff;
+            box-shadow: 0 0 0 3px rgba(53, 108, 158, 0.12);
+        }
+
+        .rm-forgot-row {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: -10px;
+            margin-bottom: 22px;
+        }
+
+        .rm-forgot-link {
+            color: #315d88;
+            font-size: 11px;
+            font-weight: 700;
+            text-decoration: none;
+        }
+
+        .rm-forgot-link:hover {
+            color: #173d62;
+            text-decoration: underline;
+        }
+
+        .rm-login-btn {
+            min-height: 43px;
+            border: 1px solid #214f79;
+            border-radius: 7px;
+            background: #214f79;
+            color: #ffffff;
+            font-size: 13px;
+            font-weight: 700;
+            transition:
+                transform 0.18s ease,
+                box-shadow 0.18s ease,
+                background 0.18s ease;
+        }
+
+        .rm-login-btn:hover {
+            transform: translateY(-1px);
+            border-color: #183d60;
+            background: #183d60;
+            color: #ffffff;
+            box-shadow: 0 5px 12px rgba(33, 79, 121, 0.2);
+        }
+
+        .rm-login-btn:active {
+            transform: scale(0.99);
+        }
+
+        .rm-register-heading {
+            margin: 23px 0 13px;
+            color: #9aa8b9;
+            font-size: 12px;
+            text-align: center;
+        }
+
+        .rm-register-link {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 42px;
+            padding: 9px 14px;
+            border: 1px solid #d8e3ef;
+            border-radius: 7px;
+            background: #ffffff;
+            color: #245782;
+            font-size: 13px;
+            font-weight: 700;
+            text-align: center;
+            text-decoration: none;
+            transition:
+                background 0.2s ease,
+                border-color 0.2s ease,
+                transform 0.2s ease;
+        }
+
+        .rm-register-link:hover {
+            transform: translateY(-1px);
+            border-color: #a8c1d9;
+            background: #f4f8fc;
+            color: #183d60;
+        }
+
+        .rm-login-footer {
+            display: none;
+        }
+
+        @keyframes rm-login-enter {
+            from {
+                opacity: 0;
+                transform: translateY(12px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Tablet and mobile */
+        @media (max-width: 700px) {
+            .rm-login-page {
+                padding: 22px 15px;
+            }
+
+            .rm-login-card {
+                grid-template-columns: 1fr;
+                max-width: 460px;
+                min-height: auto;
+            }
+
+            .rm-brand-panel {
+                padding: 25px 26px;
+            }
+
+            .rm-brand-icon {
+                width: 32px;
+                height: 32px;
+                margin-bottom: 12px;
+            }
+
+            .rm-brand-title {
+                font-size: 22px;
+            }
+
+            .rm-brand-description {
+                max-width: none;
+            }
+
+            .rm-brand-features {
+                display: none;
+            }
+
+            .rm-form-panel {
+                padding: 30px 26px;
+            }
+
+            .rm-welcome-title {
+                font-size: 21px;
+            }
+        }
+
+        @media (max-width: 380px) {
+            .rm-login-page {
+                padding: 12px;
+            }
+
+            .rm-brand-panel,
+            .rm-form-panel {
+                padding: 24px 20px;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .rm-login-card {
+                animation: none;
+            }
+
+            .rm-login-form .form-control,
+            .rm-login-btn,
+            .rm-register-link {
+                transition: none;
+            }
+        }
+    </style>
+    <link rel="stylesheet" href="premium-polish.css">
 </head>
+
 <body>
+    <main class="rm-login-page">
+        <section class="rm-login-card">
 
-    <main class="login-page">
-        <section class="login-card">
+            <!-- Left branding panel -->
+            <aside class="rm-brand-panel">
+                <div class="rm-brand-icon">RM</div>
 
-            <div class="brand-icon">R</div>
-            <h1>ResearchMate</h1>
-            <p class="subtitle">
-                Your research journey starts here.
-            </p>
+                <h1 class="rm-brand-title">ResearchMate</h1>
 
-            <h2>Welcome back</h2>
-            <p class="description">
-                Sign in to continue your research.
-            </p>
+                <p class="rm-brand-description">
+                    A centralized workspace for managing your research
+                    projects, papers, notes, and citations — with
+                    AI-assisted tools built in.
+                </p>
 
-            <form id="loginForm">
-                <div class="mb-3">
-                    <label for="email" class="form-label">
-                        Email address
-                    </label>
-                    <input
-                        type="email"
-                        class="form-control"
-                        id="email"
-                        placeholder="you@example.com"
-                        required
+                <ul class="rm-brand-features">
+                    <li>Organize papers &amp; notes in one place</li>
+                    <li>AI-assisted summaries &amp; keywords</li>
+                    <li>APA / IEEE / MLA citation generator</li>
+                </ul>
+            </aside>
+
+            <!-- Right login panel -->
+            <div class="rm-form-panel">
+                <h2 class="rm-welcome-title">Welcome back</h2>
+
+                <p class="rm-welcome-description">
+                    Log in to continue to your research workspace
+                </p>
+
+                <form id="loginForm" class="rm-login-form">
+                    <div class="mb-3">
+                        <label for="email" class="form-label">
+                            Email address
+                        </label>
+
+                        <input
+                            type="email"
+                            class="form-control"
+                            id="email"
+                            name="email"
+                            placeholder="you@example.com"
+                            autocomplete="email"
+                            required
+                        >
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="password" class="form-label">
+                            Password
+                        </label>
+
+                        <input
+                            type="password"
+                            class="form-control"
+                            id="password"
+                            name="password"
+                            placeholder="Enter your password"
+                            autocomplete="current-password"
+                            required
+                        >
+                    </div>
+
+                    <div class="rm-forgot-row">
+                        <a
+                            href="#"
+                            class="rm-forgot-link"
+                            id="forgotPasswordLink"
+                        >
+                            Forgot password?
+                        </a>
+                    </div>
+
+                    <button
+                        type="submit"
+                        class="btn rm-login-btn w-100"
                     >
-                </div>
+                        Log In
+                    </button>
+                </form>
 
-                <div class="mb-3">
-                    <label for="password" class="form-label">
-                        Password
-                    </label>
-                    <input
-                        type="password"
-                        class="form-control"
-                        id="password"
-                        placeholder="Enter your password"
-                        required
-                    >
-                </div>
+                <p class="rm-register-heading">
+                    New to ResearchMate?
+                </p>
 
-                <button type="submit" class="btn login-btn w-100">
-                    Sign In
-                </button>
-            </form>
-
-            <p class="register-text">
-                New to ResearchMate?
-                <a href="register.html">Create an account</a>
-            </p>
-
-            <p class="footer-text">
-                AI-assisted research. Organized your way.
-            </p>
+                <a
+                    href="register.html"
+                    class="rm-register-link"
+                >
+                    Create an account
+                </a>
+            </div>
 
         </section>
     </main>
 
+    <!-- Existing project JavaScript -->
     <script src="script.js"></script>
     <script src="theme.js"></script>
+    <script src="ui-feedback.js"></script>
 </body>
 </html>
+```

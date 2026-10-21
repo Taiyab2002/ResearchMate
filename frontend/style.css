@@ -1637,200 +1637,182 @@ button,.btn,.login-btn,.logout-link,.nav-link,select,.form-control,.form-select,
 }
 
 
-
-/* ===== ResearchMate UI Polish v2: visible, page-wide micro-interactions ===== */
-/* Additive layer only: does not modify theme.js, HTML, or existing feature logic. */
-
-:root {
-  --rm-motion-fast: 160ms;
-  --rm-motion-normal: 240ms;
-  --rm-motion-slow: 420ms;
-}
-
-html {
-  scroll-behavior: smooth;
-}
-
-body {
-  animation: rm-page-enter 420ms cubic-bezier(.2,.7,.2,1) both;
-}
-
-/* Shared card surfaces across dashboard and utility pages */
-.login-card,
-.stat-card,
-.content-card,
-.project-card,
-.paper-card,
-.note-card,
-.ai-card,
-.citation-card,
-.profile-card,
-.ai-result,
-.project-modal-card,
-.paper-modal-card,
-.note-modal-card {
-  transition:
-    transform var(--rm-motion-normal) cubic-bezier(.2,.7,.2,1),
-    box-shadow var(--rm-motion-normal) ease,
-    border-color var(--rm-motion-normal) ease,
-    background-color var(--rm-motion-normal) ease;
-  will-change: transform;
-}
-
-.stat-card:hover,
-.content-card:hover,
-.project-card:hover,
-.paper-card:hover,
-.note-card:hover,
-.ai-card:hover,
-.citation-card:hover,
-.profile-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 16px 36px var(--rm-glow, rgba(54,89,217,.14));
-  border-color: var(--rm-primary, #5575ee);
-}
-
-/* Buttons: clear hover, pressed and keyboard-focus states */
-button,
-.btn,
-.login-btn,
-.create-project-btn,
-.project-view-btn,
-.cancel-btn,
-.modal-close {
-  transition:
-    transform var(--rm-motion-fast) ease,
-    box-shadow var(--rm-motion-fast) ease,
-    filter var(--rm-motion-fast) ease,
-    background-color var(--rm-motion-fast) ease,
-    border-color var(--rm-motion-fast) ease;
-}
-
-button:hover:not(:disabled),
-.btn:hover:not(:disabled),
-.login-btn:hover:not(:disabled),
-.create-project-btn:hover:not(:disabled),
-.project-view-btn:hover:not(:disabled) {
-  filter: brightness(1.045);
-  transform: translateY(-2px);
-}
-
-button:active:not(:disabled),
-.btn:active:not(:disabled),
-.login-btn:active:not(:disabled),
-.create-project-btn:active:not(:disabled),
-.project-view-btn:active:not(:disabled) {
-  filter: brightness(.97);
-  transform: translateY(0) scale(.985);
-}
-
-button:disabled,
-.btn:disabled {
-  cursor: not-allowed;
-  opacity: .58;
-  transform: none;
-}
-
-/* Sidebar navigation: smooth movement without changing active-state logic */
+/* ===== Visible UI polish v2: applies to real ResearchMate components ===== */
+:root { --rm-motion-fast: 180ms; --rm-motion-normal: 280ms; }
+html { scroll-behavior: smooth; }
+body { -webkit-font-smoothing: antialiased; }
+/* Consistent interaction feedback across dashboard, library, AI, citations and profile */
 .sidebar-nav .nav-link,
-.sidebar-bottom a,
-.logout-link {
-  transition:
-    color var(--rm-motion-fast) ease,
-    background-color var(--rm-motion-fast) ease,
-    transform var(--rm-motion-fast) ease,
-    border-color var(--rm-motion-fast) ease;
+.btn, .login-btn, .text-link, .project-view-btn,
+.modal-close, .cancel-btn, .create-project-btn,
+.form-control, .form-select, .project-card, .stat-card,
+.content-card, .ai-card, .citation-card, .profile-card,
+.paper-modal-card, .note-modal-card, .project-modal-card,
+.login-card, .brand-icon {
+  transition: transform var(--rm-motion-fast) ease,
+              box-shadow var(--rm-motion-normal) ease,
+              border-color var(--rm-motion-fast) ease,
+              background-color var(--rm-motion-fast) ease,
+              color var(--rm-motion-fast) ease;
 }
-
-.sidebar-nav .nav-link:hover {
-  transform: translateX(4px);
+.sidebar-nav .nav-link:hover { transform: translateX(3px); }
+.btn:hover, .login-btn:hover, .create-project-btn:hover, .project-view-btn:hover { transform: translateY(-2px); }
+.btn:active, .login-btn:active { transform: translateY(0) scale(.985); }
+.project-card, .stat-card, .content-card, .ai-card, .citation-card, .profile-card,
+.paper-modal-card, .note-modal-card, .project-modal-card, .login-card {
+  box-shadow: 0 8px 24px rgba(30, 45, 85, .07);
 }
-
-/* Visible focus state for keyboard and form users */
-.form-control,
-.form-select,
-input,
-textarea,
-select {
-  transition:
-    border-color var(--rm-motion-fast) ease,
-    box-shadow var(--rm-motion-fast) ease,
-    background-color var(--rm-motion-fast) ease;
+.project-card:hover, .stat-card:hover, .content-card:hover, .ai-card:hover,
+.citation-card:hover, .profile-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 16px 34px rgba(30, 45, 85, .13);
 }
-
-.form-control:focus,
-.form-select:focus,
-input:focus-visible,
-textarea:focus-visible,
-select:focus-visible {
-  outline: none;
-  border-color: var(--rm-primary, #5575ee);
-  box-shadow: 0 0 0 3px var(--rm-glow, rgba(54,89,217,.18));
+.form-control:focus, .form-select:focus {
+  transform: translateY(-1px);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--rm-primary, #6678f5) 18%, transparent);
 }
-
-/* Progress indicators animate when their inline width is applied */
-.progress-fill,
-.green-fill,
-.purple-fill,
-.overall-track > *,
-.progress-track > * {
-  animation: rm-progress-enter 850ms cubic-bezier(.2,.7,.2,1) both;
-  transform-origin: left center;
+.brand-icon { box-shadow: 0 6px 18px rgba(54, 89, 217, .20); }
+.brand-icon:hover { transform: rotate(-5deg) scale(1.04); }
+.progress-fill { transition: width 700ms cubic-bezier(.2,.8,.2,1); }
+:where(a, button, input, select, textarea, [tabindex]):focus-visible {
+  outline: 2px solid var(--rm-primary, #6678f5); outline-offset: 3px;
 }
-
-/* Staggered entrance for the actual content regions on every page type */
-.dashboard-main,
-.ai-page,
-.citation-page,
-.profile-page,
-.login-card {
-  animation: rm-content-enter 460ms cubic-bezier(.2,.7,.2,1) both;
+/* Gentle page entrance on every major screen; no JS or theme-switcher changes */
+@keyframes rm-page-enter-v2 { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+.dashboard-main, .ai-page, .citation-page, .profile-page, .login-card {
+  animation: rm-page-enter-v2 420ms ease-out both;
 }
-
-.dashboard-main > * {
-  animation: rm-content-enter 460ms cubic-bezier(.2,.7,.2,1) both;
-}
-
-.dashboard-main > *:nth-child(2) { animation-delay: 45ms; }
-.dashboard-main > *:nth-child(3) { animation-delay: 90ms; }
-.dashboard-main > *:nth-child(4) { animation-delay: 135ms; }
-
-@keyframes rm-page-enter {
-  from { opacity: .78; }
-  to { opacity: 1; }
-}
-
-@keyframes rm-content-enter {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-@keyframes rm-progress-enter {
-  from { opacity: .55; transform: scaleX(.72); }
-  to { opacity: 1; transform: scaleX(1); }
-}
-
-/* On touch devices, don't leave hover-only movement stuck on screen */
-@media (hover: none) {
-  .stat-card:hover,
-  .content-card:hover,
-  .project-card:hover,
-  .paper-card:hover,
-  .note-card:hover,
-  .ai-card:hover,
-  .citation-card:hover,
-  .profile-card:hover,
-  .sidebar-nav .nav-link:hover {
-    transform: none;
-  }
-}
-
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
-  *, *::before, *::after {
-    animation-duration: .01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: .01ms !important;
-    scroll-behavior: auto !important;
-  }
+  *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
+}
+
+
+/* ===== Login page: Theme compatibility fix ===== */
+
+html[data-theme="light"] .rm-login-page {
+    background: var(--rm-bg);
+}
+
+html[data-theme="light"] .rm-login-card,
+html[data-theme="light"] .rm-form-panel {
+    background: var(--rm-surface-solid);
+    color: var(--rm-text);
+}
+
+html[data-theme="light"] .rm-welcome-title,
+html[data-theme="light"] .rm-login-form .form-label {
+    color: var(--rm-text);
+}
+
+html[data-theme="light"] .rm-welcome-description,
+html[data-theme="light"] .rm-register-heading {
+    color: var(--rm-muted);
+}
+
+html[data-theme="light"] .rm-login-form .form-control {
+    background: var(--rm-input);
+    color: var(--rm-text);
+    border-color: var(--rm-border);
+}
+
+html[data-theme="light"] .rm-login-btn {
+    background: linear-gradient(
+        135deg,
+        var(--rm-primary),
+        var(--rm-secondary)
+    );
+    border-color: transparent;
+    color: #fff;
+}
+
+/* Hybrid theme */
+html[data-theme="hybrid"] .rm-login-page {
+    background: var(--rm-bg);
+}
+
+html[data-theme="hybrid"] .rm-login-card,
+html[data-theme="hybrid"] .rm-form-panel {
+    background: var(--rm-surface-solid);
+    color: var(--rm-text);
+}
+
+html[data-theme="hybrid"] .rm-welcome-title,
+html[data-theme="hybrid"] .rm-login-form .form-label {
+    color: var(--rm-text);
+}
+
+html[data-theme="hybrid"] .rm-welcome-description,
+html[data-theme="hybrid"] .rm-register-heading {
+    color: var(--rm-muted);
+}
+
+html[data-theme="hybrid"] .rm-login-form .form-control {
+    background: var(--rm-input);
+    color: var(--rm-text);
+    border-color: var(--rm-border);
+}
+
+html[data-theme="hybrid"] .rm-login-btn {
+    background: linear-gradient(
+        135deg,
+        var(--rm-primary),
+        var(--rm-secondary)
+    );
+    border-color: transparent;
+    color: #fff;
+}
+
+/* Dark Futuristic theme */
+html[data-theme="dark"] .rm-login-page {
+    background: var(--rm-bg);
+}
+
+html[data-theme="dark"] .rm-login-card,
+html[data-theme="dark"] .rm-form-panel {
+    background: var(--rm-surface-solid);
+    color: var(--rm-text);
+}
+
+html[data-theme="dark"] .rm-welcome-title,
+html[data-theme="dark"] .rm-login-form .form-label {
+    color: var(--rm-text);
+}
+
+html[data-theme="dark"] .rm-welcome-description,
+html[data-theme="dark"] .rm-register-heading {
+    color: var(--rm-muted);
+}
+
+html[data-theme="dark"] .rm-login-form .form-control {
+    background: var(--rm-input);
+    color: var(--rm-text);
+    border-color: var(--rm-border);
+}
+
+html[data-theme="dark"] .rm-login-form .form-control::placeholder {
+    color: var(--rm-muted);
+}
+
+html[data-theme="dark"] .rm-login-form .form-control:focus {
+    background: var(--rm-input);
+    color: var(--rm-text);
+    border-color: var(--rm-primary);
+    box-shadow: 0 0 0 3px var(--rm-glow);
+}
+
+html[data-theme="dark"] .rm-login-btn {
+    background: linear-gradient(
+        135deg,
+        var(--rm-primary),
+        var(--rm-secondary)
+    );
+    border-color: transparent;
+    color: #08101d;
+}
+
+html[data-theme="dark"] .rm-register-link {
+    background: var(--rm-input);
+    color: var(--rm-text);
+    border-color: var(--rm-border);
 }
