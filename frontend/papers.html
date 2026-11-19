@@ -11,7 +11,7 @@
         rel="stylesheet"
     >
     <link rel="stylesheet" href="style.css">
-  <link rel="stylesheet" href="ui-feedback.css">
+    <link rel="stylesheet" href="ui-feedback.css">
     <link rel="stylesheet" href="premium-polish.css">
 </head>
 
@@ -41,13 +41,15 @@
                 <span>▣</span> Research Notes
             </a>
             <a href="citations.html" class="nav-link">
-                    <span>≡</span> Citations
+                <span>≡</span> Citations
             </a>
             <a href="ai-tools.html" class="nav-link">
-                    <span>✧</span> AI Research Tools
+                <span>✧</span> AI Research Tools
             </a>
-                        <a href="research-studio.html" class="nav-link"><span>✦</span> Research Studio</a>
-            </nav>
+            <a href="research-studio.html" class="nav-link">
+                <span>✦</span> Research Studio
+            </a>
+        </nav>
 
         <div class="sidebar-bottom">
             <p>Organize your ideas.</p>
@@ -193,13 +195,14 @@
                         </small>
                     </div>
 
+                    <!-- Project Selection: Backend Integration -->
                     <div class="mb-3">
                         <label class="form-label" for="paperProject">
-                            Link to Project (optional)
+                            Link to Research Project *
                         </label>
-                        <input class="form-control" id="paperProject"
-                            maxlength="150"
-                            placeholder="e.g. AI-Based Student Performance Prediction">
+                        <select class="form-control" id="paperProject" required>
+                            <option value="">Loading projects...</option>
+                        </select>
                     </div>
 
                     <div class="mb-4">
@@ -209,8 +212,8 @@
                         <input class="form-control" type="file"
                             id="paperFile" accept=".pdf,application/pdf">
                         <small class="form-help">
-                            Select a PDF from your computer. This demo
-                            does not upload it to a server.
+                            PDF selection is currently for reference only.
+                            The current backend does not support PDF uploads.
                         </small>
                     </div>
 
@@ -257,7 +260,7 @@
 </div>
 
 <script src="papers.js"></script>
-    <script src="theme.js"></script>
-    <script src="ui-feedback.js"></script>
+<script src="theme.js"></script>
+<script src="ui-feedback.js"></script>
 </body>
 </html>

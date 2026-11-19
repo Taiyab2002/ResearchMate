@@ -11,234 +11,740 @@
         href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
         rel="stylesheet"
     >
+
     <link rel="stylesheet" href="style.css">
-  <link rel="stylesheet" href="ui-feedback.css">
+    <link rel="stylesheet" href="ui-feedback.css">
     <link rel="stylesheet" href="premium-polish.css">
+
+    <style>
+        /* =========================================
+           DASHBOARD PROFILE DROPDOWN
+        ========================================= */
+
+        .dashboard-header {
+            position: relative;
+            z-index: 30;
+            overflow: visible !important;
+        }
+
+        .profile-menu-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+            z-index: 10001;
+        }
+
+        .profile-trigger {
+            display: flex;
+            align-items: center;
+            gap: 9px;
+            padding: 5px 10px 5px 5px;
+            border: 1px solid var(--border-color, rgba(128,128,128,0.25));
+            border-radius: 50px;
+            background: var(--card-bg, transparent);
+            color: inherit;
+            cursor: pointer;
+            transition: all 0.25s ease;
+        }
+
+        .profile-trigger:hover,
+        .profile-trigger[aria-expanded="true"] {
+            transform: translateY(-2px);
+            border-color: var(--accent-color, #7c6cff);
+            box-shadow: 0 5px 18px rgba(100, 100, 200, 0.15);
+        }
+
+        .profile-avatar {
+            width: 38px;
+            height: 38px;
+            min-width: 38px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #6558e8, #9c6cff);
+            color: #fff;
+            font-size: 14px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            overflow: hidden;
+        }
+
+        .profile-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 50%;
+        }
+
+        .profile-trigger-info {
+            text-align: left;
+            line-height: 1.25;
+        }
+
+        .profile-trigger-info strong {
+            display: block;
+            font-size: 13px;
+            font-weight: 650;
+        }
+
+        .profile-trigger-info small {
+            display: block;
+            font-size: 11px;
+            opacity: 0.65;
+        }
+
+        .profile-chevron {
+            font-size: 11px;
+            opacity: 0.65;
+            margin-left: 3px;
+        }
+
+        /* Dropdown base */
+
+        .profile-dropdown {
+            position: absolute;
+            top: calc(100% + 12px);
+            right: 0;
+            width: 260px;
+            z-index: 10002;
+            padding: 8px;
+
+            border: 1px solid #34415f;
+            border-radius: 14px;
+
+            /* Solid background: no transparency */
+            background-color: #111a2e !important;
+            color: #edf2ff !important;
+
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+
+            transform: translateY(-8px);
+
+            box-shadow: 0 16px 45px rgba(0, 0, 0, 0.45);
+
+            transition:
+                opacity 0.2s ease,
+                transform 0.2s ease,
+                visibility 0.2s ease;
+        }
+
+        .profile-dropdown.show {
+            opacity: 1;
+            visibility: visible;
+            pointer-events: auto;
+            transform: translateY(0);
+        }
+
+        /* Dark Futuristic */
+
+        html[data-theme="dark"] .profile-dropdown {
+            background-color: #111a2e !important;
+            color: #edf2ff !important;
+            border-color: #34415f;
+        }
+
+        /* Hybrid */
+
+        html[data-theme="hybrid"] .profile-dropdown {
+            background-color: #151d32 !important;
+            color: #edf2ff !important;
+            border-color: #384566;
+        }
+
+        /* Light Premium */
+
+        html[data-theme="light"] .profile-dropdown {
+            background-color: #ffffff !important;
+            color: #20283a !important;
+            border-color: #e0e5ef;
+            box-shadow: 0 16px 45px rgba(30, 40, 70, 0.16);
+        }
+
+        .profile-dropdown-header {
+            display: flex;
+            align-items: center;
+            gap: 11px;
+            padding: 12px 10px;
+        }
+
+        .profile-dropdown-header .profile-avatar {
+            width: 42px;
+            height: 42px;
+            min-width: 42px;
+        }
+
+        .profile-user-details {
+            min-width: 0;
+        }
+
+        .profile-user-details strong {
+            display: block;
+            font-size: 13px;
+            font-weight: 650;
+            color: inherit;
+            overflow-wrap: anywhere;
+        }
+
+        .profile-user-details small {
+            display: block;
+            font-size: 11px;
+            opacity: 0.7;
+            color: inherit;
+            overflow-wrap: anywhere;
+            margin-top: 3px;
+        }
+
+        .profile-dropdown-divider {
+            height: 1px;
+            background: rgba(150, 165, 195, 0.22);
+            margin: 5px 2px;
+        }
+
+        .profile-dropdown-item {
+            display: flex;
+            align-items: center;
+            gap: 11px;
+            width: 100%;
+            padding: 11px 10px;
+            border-radius: 8px;
+
+            color: inherit !important;
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: 500;
+
+            background: transparent;
+            border: none;
+            text-align: left;
+
+            transition: background 0.2s ease;
+        }
+
+        .profile-dropdown-item:hover {
+            background: rgba(130, 150, 190, 0.15);
+            color: inherit !important;
+        }
+
+        .profile-dropdown-item .menu-icon {
+            width: 19px;
+            text-align: center;
+            font-size: 15px;
+        }
+
+        .profile-dropdown-item.signout {
+            color: #ff7777 !important;
+        }
+
+        .profile-dropdown-item.signout:hover {
+            background: rgba(224, 82, 82, 0.12);
+            color: #ff7777 !important;
+        }
+
+        /* Light theme dropdown item styling */
+
+        html[data-theme="light"] .profile-dropdown-divider {
+            background: rgba(40, 50, 75, 0.12);
+        }
+
+        html[data-theme="light"] .profile-dropdown-item:hover {
+            background: rgba(70, 85, 120, 0.08);
+        }
+
+        @media (max-width: 576px) {
+            .profile-trigger-info {
+                display: none;
+            }
+
+            .profile-trigger {
+                padding: 4px;
+            }
+
+            .profile-dropdown {
+                width: 245px;
+            }
+        }
+    </style>
 </head>
+
 <body class="dashboard-body">
 
-    <div class="dashboard-layout">
+<div class="dashboard-layout">
 
-        <!-- Sidebar -->
-        <aside class="sidebar">
-            <a href="dashboard.html" class="sidebar-brand">
-                <span class="brand-icon">R</span>
-                <span>ResearchMate</span>
+    <!-- Sidebar -->
+    <aside class="sidebar">
+
+        <a href="dashboard.html" class="sidebar-brand">
+            <span class="brand-icon">R</span>
+            <span>ResearchMate</span>
+        </a>
+
+        <p class="sidebar-label">WORKSPACE</p>
+
+        <nav class="sidebar-nav">
+
+            <a href="dashboard.html" class="nav-link active">
+                <span>▦</span> Dashboard
             </a>
 
-            <p class="sidebar-label">WORKSPACE</p>
+            <a href="projects.html" class="nav-link">
+                <span>▤</span> My Projects
+            </a>
 
-            <nav class="sidebar-nav">
-                <a href="dashboard.html" class="nav-link active">
-                    <span>▦</span> Dashboard
-                </a>
+            <a href="papers.html" class="nav-link">
+                <span>▧</span> Paper Library
+            </a>
 
-                <a href="projects.html" class="nav-link">
-                    <span>▤</span> My Projects
-                </a>
+            <a href="notes.html" class="nav-link">
+                <span>▣</span> Research Notes
+            </a>
 
-                <a href="papers.html" class="nav-link">
-                    <span>▧</span> Paper Library
-                </a>
+            <a href="citations.html" class="nav-link">
+                <span>≡</span> Citations
+            </a>
 
-                <a href="notes.html" class="nav-link">
-                    <span>▣</span> Research Notes
-                </a>
+            <a href="ai-tools.html" class="nav-link">
+                <span>✧</span> AI Research Tools
+            </a>
 
-                <a href="citations.html" class="nav-link">
-                    <span>≡</span> Citations
-                </a>
+            <a href="research-studio.html" class="nav-link">
+                <span>✦</span> Research Studio
+            </a>
 
-                <a href="ai-tools.html" class="nav-link">
-                    <span>✧</span> AI Research Tools
-                </a>
-                            <a href="research-studio.html" class="nav-link"><span>✦</span> Research Studio</a>
-            </nav>
+        </nav>
 
-            <div class="sidebar-bottom">
-                <p>Organize your ideas.</p>
-                <small>Build better research with ResearchMate.</small>
+        <div class="sidebar-bottom">
+            <p>Organize your ideas.</p>
+            <small>Build better research with ResearchMate.</small>
+        </div>
+
+    </aside>
+
+
+    <!-- Main Content -->
+    <main class="dashboard-main">
+
+        <header class="dashboard-header">
+
+            <div>
+                <p class="eyebrow">YOUR WORKSPACE</p>
+
+                <h1>Research Dashboard</h1>
+
+                <p class="dashboard-subtitle">
+                    Keep your research organized and moving forward.
+                </p>
             </div>
-        </aside>
 
-        <!-- Main Content -->
-        <main class="dashboard-main">
+            <!-- Profile Dropdown -->
+            <div class="profile-menu-wrapper">
 
-            <header class="dashboard-header">
-                <div>
-                    <p class="eyebrow">YOUR WORKSPACE</p>
-                    <h1>Research Dashboard</h1>
-                    <p class="dashboard-subtitle">
-                        Keep your research organized and moving forward.
-                    </p>
+                <button
+                    type="button"
+                    class="profile-trigger"
+                    id="profileMenuButton"
+                    aria-label="Open profile menu"
+                    aria-expanded="false"
+                    aria-controls="profileDropdown"
+                >
+
+                    <span class="profile-avatar" id="headerAvatar">
+                        U
+                    </span>
+
+                    <span class="profile-trigger-info">
+                        <strong id="headerUsername">My Account</strong>
+                        <small>ResearchMate User</small>
+                    </span>
+
+                    <span class="profile-chevron">▼</span>
+
+                </button>
+
+
+                <div
+                    class="profile-dropdown"
+                    id="profileDropdown"
+                    role="menu"
+                    aria-labelledby="profileMenuButton"
+                >
+
+                    <div class="profile-dropdown-header">
+
+                        <span class="profile-avatar" id="dropdownAvatar">
+                            U
+                        </span>
+
+                        <div class="profile-user-details">
+
+                            <strong id="dropdownUsername">
+                                Loading...
+                            </strong>
+
+                            <small id="dropdownEmail">
+                                Loading account...
+                            </small>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="profile-dropdown-divider"></div>
+
+
+                    <a
+                        href="profile.html"
+                        class="profile-dropdown-item"
+                        role="menuitem"
+                    >
+                        <span class="menu-icon">♙</span>
+                        <span>My Profile</span>
+                    </a>
+
+
+                    <div class="profile-dropdown-divider"></div>
+
+
+                    <a
+                        href="index.html"
+                        class="profile-dropdown-item signout"
+                        id="logoutButton"
+                        role="menuitem"
+                    >
+                        <span class="menu-icon">↪</span>
+                        <span>Sign Out</span>
+                    </a>
+
                 </div>
 
-                <a href="index.html" class="logout-link">
-                    Sign Out
-                </a>
-            </header>
+            </div>
 
-            <!-- Summary Cards -->
-            <section class="stats-grid">
+        </header>
 
-                <article class="stat-card">
-                    <div class="stat-icon blue">▦</div>
-                    <p>Active Projects</p>
-                    <h2>3</h2>
-                    <small>Research projects in progress</small>
-                </article>
 
-                <article class="stat-card">
-                    <div class="stat-icon purple">▤</div>
-                    <p>Saved Papers</p>
-                    <h2>12</h2>
-                    <small>Academic papers in your library</small>
-                </article>
+        <!-- Summary Cards -->
+        <section class="stats-grid">
 
-                <article class="stat-card">
-                    <div class="stat-icon green">✓</div>
-                    <p>Completed Tasks</p>
-                    <h2>8</h2>
-                    <small>Tasks completed this demo</small>
-                </article>
+            <article class="stat-card">
+                <div class="stat-icon blue">▦</div>
+                <p>Active Projects</p>
+                <h2 id="activeProjectsCount">0</h2>
+                <small>Research projects in your workspace</small>
+            </article>
 
-                <article class="stat-card">
-                    <div class="stat-icon orange">✧</div>
-                    <p>AI Analyses</p>
-                    <h2>5</h2>
-                    <small>Research analyses in this demo</small>
-                </article>
+            <article class="stat-card">
+                <div class="stat-icon purple">▤</div>
+                <p>Saved Papers</p>
+                <h2 id="savedPapersCount">0</h2>
+                <small>Academic papers in your library</small>
+            </article>
 
-            </section>
+            <article class="stat-card">
+                <div class="stat-icon green">✓</div>
+                <p>Completed Tasks</p>
+                <h2>—</h2>
+                <small>Task tracking integration pending</small>
+            </article>
 
-            <!-- Projects and Activity -->
-            <section class="dashboard-content-grid">
+            <article class="stat-card">
+                <div class="stat-icon orange">✧</div>
+                <p>AI Analyses</p>
+                <h2>—</h2>
+                <small>AI activity integration pending</small>
+            </article>
 
-                <article class="content-card">
-                    <div class="section-heading">
-                        <div>
-                            <h2>Active Projects</h2>
-                            <p>Track your current research work.</p>
-                        </div>
+        </section>
 
-                        <a href="#" class="text-link">View all</a>
-                    </div>
 
-                    <div class="project-item">
-                        <div class="project-mark blue">AI</div>
-                        <div class="project-info">
-                            <h3>AI in Education</h3>
-                            <p>Artificial Intelligence</p>
-                            <div class="progress-track">
-                                <div class="progress-fill"
-                                     style="width: 70%"></div>
-                            </div>
-                            <small>70% complete</small>
-                        </div>
-                    </div>
+        <!-- Projects and Activity -->
+        <section class="dashboard-content-grid">
 
-                    <div class="project-item">
-                        <div class="project-mark purple">ML</div>
-                        <div class="project-info">
-                            <h3>Machine Learning Research</h3>
-                            <p>Machine Learning</p>
-                            <div class="progress-track">
-                                <div class="progress-fill purple-fill"
-                                     style="width: 45%"></div>
-                            </div>
-                            <small>45% complete</small>
-                        </div>
-                    </div>
+            <!-- Active Projects -->
+            <article class="content-card">
 
-                    <div class="project-item">
-                        <div class="project-mark green">NLP</div>
-                        <div class="project-info">
-                            <h3>Text Summarization</h3>
-                            <p>Natural Language Processing</p>
-                            <div class="progress-track">
-                                <div class="progress-fill green-fill"
-                                     style="width: 25%"></div>
-                            </div>
-                            <small>25% complete</small>
-                        </div>
-                    </div>
-
-                </article>
-
-                <article class="content-card">
-                    <div class="section-heading">
-                        <div>
-                            <h2>Recent Activity</h2>
-                            <p>Your latest research updates.</p>
-                        </div>
-                    </div>
-
-                    <div class="activity-item">
-                        <span class="activity-dot blue-dot"></span>
-                        <div>
-                            <h3>Paper added</h3>
-                            <p>New paper added to your library.</p>
-                            <small>Demo activity</small>
-                        </div>
-                    </div>
-
-                    <div class="activity-item">
-                        <span class="activity-dot purple-dot"></span>
-                        <div>
-                            <h3>Project updated</h3>
-                            <p>AI in Education progress updated.</p>
-                            <small>Demo activity</small>
-                        </div>
-                    </div>
-
-                    <div class="activity-item">
-                        <span class="activity-dot green-dot"></span>
-                        <div>
-                            <h3>AI summary generated</h3>
-                            <p>A research paper was summarized.</p>
-                            <small>Demo activity</small>
-                        </div>
-                    </div>
-
-                    <div class="activity-note">
-                        These are sample activities. Real activity
-                        will appear after backend integration.
-                    </div>
-                </article>
-
-            </section>
-
-            <!-- Research Progress -->
-            <section class="content-card progress-overview">
                 <div class="section-heading">
+
                     <div>
-                        <h2>Research Progress</h2>
-                        <p>A quick overview of your research journey.</p>
+                        <h2>Active Projects</h2>
+                        <p>Track your current research work.</p>
                     </div>
-                    <span class="demo-badge">DEMO DATA</span>
+
+                    <a href="projects.html" class="text-link">
+                        View all
+                    </a>
+
                 </div>
 
-                <div class="progress-summary">
+                <div id="dashboardProjects">
+                    <p>Loading projects...</p>
+                </div>
+
+            </article>
+
+
+            <!-- Recent Activity -->
+            <article class="content-card">
+
+                <div class="section-heading">
+
                     <div>
-                        <h3>Overall progress</h3>
-                        <p>Across your sample research projects</p>
+                        <h2>Recent Activity</h2>
+                        <p>Your latest research updates.</p>
                     </div>
-                    <strong>47%</strong>
+
                 </div>
 
-                <div class="progress-track overall-track">
-                    <div class="progress-fill" style="width: 47%"></div>
+                <div id="dashboardActivity">
+                    <p>Loading recent activity...</p>
                 </div>
-            </section>
 
-            <footer class="dashboard-footer">
-                ResearchMate · AI-assisted research, organized your way.
-            </footer>
+            </article>
 
-        </main>
-    </div>
+        </section>
 
-    <script src="theme.js"></script>
-    <script src="ui-feedback.js"></script>
+
+        <!-- Research Progress -->
+        <section class="content-card progress-overview">
+
+            <div class="section-heading">
+
+                <div>
+                    <h2>Research Progress</h2>
+                    <p>A quick overview of your research journey.</p>
+                </div>
+
+                <span class="demo-badge" id="progressBadge">
+                    LIVE DATA
+                </span>
+
+            </div>
+
+
+            <div class="progress-summary">
+
+                <div>
+                    <h3>Overall progress</h3>
+                    <p>Across your research projects</p>
+                </div>
+
+                <strong id="overallProgress">0%</strong>
+
+            </div>
+
+
+            <div class="progress-track overall-track">
+
+                <div
+                    class="progress-fill"
+                    id="overallProgressBar"
+                    style="width: 0%"
+                ></div>
+
+            </div>
+
+        </section>
+
+
+        <footer class="dashboard-footer">
+            ResearchMate · AI-assisted research, organized your way.
+        </footer>
+
+    </main>
+
+</div>
+
+
+<!-- Existing Scripts -->
+<script src="theme.js"></script>
+<script src="ui-feedback.js"></script>
+<script src="dashboard.js"></script>
+
+
+<script>
+    /* =========================================
+       PROFILE DROPDOWN INTERACTION
+    ========================================= */
+
+    const profileMenuButton =
+        document.getElementById("profileMenuButton");
+
+    const profileDropdown =
+        document.getElementById("profileDropdown");
+
+
+    profileMenuButton.addEventListener("click", function (event) {
+
+        event.stopPropagation();
+
+        const isOpen = profileDropdown.classList.toggle("show");
+
+        profileMenuButton.setAttribute(
+            "aria-expanded",
+            String(isOpen)
+        );
+
+    });
+
+
+    document.addEventListener("click", function (event) {
+
+        if (
+            !profileDropdown.contains(event.target) &&
+            !profileMenuButton.contains(event.target)
+        ) {
+
+            profileDropdown.classList.remove("show");
+
+            profileMenuButton.setAttribute(
+                "aria-expanded",
+                "false"
+            );
+
+        }
+
+    });
+
+
+    document.addEventListener("keydown", function (event) {
+
+        if (event.key === "Escape") {
+
+            profileDropdown.classList.remove("show");
+
+            profileMenuButton.setAttribute(
+                "aria-expanded",
+                "false"
+            );
+
+            profileMenuButton.focus();
+
+        }
+
+    });
+
+
+    /* =========================================
+       LOAD USER PROFILE FROM BACKEND
+    ========================================= */
+
+    async function loadDashboardProfile() {
+
+        const accessToken =
+            localStorage.getItem("rm_access_token");
+
+        if (!accessToken) {
+            return;
+        }
+
+        try {
+
+            const response = await fetch(
+                "http://127.0.0.1:8000/api/profile/",
+                {
+                    method: "GET",
+
+                    headers: {
+                        "Authorization": `Bearer ${accessToken}`
+                    }
+                }
+            );
+
+            if (!response.ok) {
+                throw new Error("Unable to load profile.");
+            }
+
+            const user = await response.json();
+
+            const username =
+                user.username ||
+                [user.first_name, user.last_name]
+                    .filter(Boolean)
+                    .join(" ") ||
+                "My Account";
+
+            const email =
+                user.email || "ResearchMate User";
+
+
+            const initials = username
+                .trim()
+                .split(/\s+/)
+                .map(part => part.charAt(0))
+                .slice(0, 2)
+                .join("")
+                .toUpperCase() || "U";
+
+
+            document.getElementById("headerUsername").textContent =
+                username;
+
+            document.getElementById("dropdownUsername").textContent =
+                username;
+
+            document.getElementById("dropdownEmail").textContent =
+                email;
+
+            document.getElementById("headerAvatar").textContent =
+                initials;
+
+            document.getElementById("dropdownAvatar").textContent =
+                initials;
+
+
+            /* Optional profile picture support */
+
+            const imageURL =
+                user.profile_picture || user.avatar || null;
+
+            if (imageURL) {
+
+                ["headerAvatar", "dropdownAvatar"].forEach(id => {
+
+                    const avatar = document.getElementById(id);
+
+                    const image = document.createElement("img");
+
+                    image.src = imageURL;
+                    image.alt = "Profile picture";
+
+                    image.onerror = function () {
+                        this.remove();
+                        avatar.textContent = initials;
+                    };
+
+                    avatar.textContent = "";
+                    avatar.appendChild(image);
+
+                });
+
+            }
+
+        } catch (error) {
+
+            console.error(
+                "Dashboard profile loading error:",
+                error
+            );
+
+            document.getElementById("headerUsername").textContent =
+                "My Account";
+
+            document.getElementById("dropdownUsername").textContent =
+                "My Account";
+
+            document.getElementById("dropdownEmail").textContent =
+                "ResearchMate User";
+
+        }
+
+    }
+
+    loadDashboardProfile();
+
+</script>
+
 </body>
 </html>

@@ -1,409 +1,791 @@
 
+/* =========================================================
+   ResearchMate - Paper Library
+   Backend API Integration
+========================================================= */
+
+const API_BASE = "http://127.0.0.1:8000/api/";
+
+let papers = [];
+let projects = [];
+let currentPaperId = null;
+
+/* =========================================================
+   DOM ELEMENTS
+========================================================= */
+
 const papersGrid = document.getElementById("papersGrid");
 const paperForm = document.getElementById("paperForm");
-const uploadModal = document.getElementById("uploadModal");
-const detailsModal = document.getElementById("paperDetailsModal");
 
-const searchInput = document.getElementById("paperSearch");
+const uploadModal = document.getElementById("uploadModal");
+const paperDetailsModal = document.getElementById("paperDetailsModal");
+
+const openUploadModal = document.getElementById("openUploadModal");
+const closeUploadModal = document.getElementById("closeUploadModal");
+const cancelUpload = document.getElementById("cancelUpload");
+
+const closePaperDetails = document.getElementById("closePaperDetails");
+const closePaperDetailsButton = document.getElementById("closePaperDetailsButton");
+
+const paperSearch = document.getElementById("paperSearch");
 const yearFilter = document.getElementById("yearFilter");
 const bookmarkFilter = document.getElementById("bookmarkFilter");
-const emptyMessage = document.getElementById("emptyPapers");
 
-const paperFileInput = document.getElementById("paperFile");
+const emptyPapers = document.getElementById("emptyPapers");
 
-let nextPaperId = 5;
+const totalPapersElement = document.getElementById("totalPapers");
+const bookmarkedPapersElement = document.getElementById("bookmarkedPapers");
+const pdfPapersElement = document.getElementById("pdfPapers");
 
-// Demo data: these are examples, not verified publications.
-const papers = [
-    {
-        id: 1,
-        title: "Artificial Intelligence in Education: A Review",
-        authors: "Chen, L.; Chen, P.; Lin, Z.",
-        year: 2024,
-        journal: "IEEE Access (demo reference)",
-        keywords: ["Artificial Intelligence", "Education", "Review"],
-        project: "AI in Education",
-        fileName: "",
-        bookmarked: true
-    },
-    {
-        id: 2,
-        title: "Machine Learning Approaches for Student Performance Prediction",
-        authors: "Khan, M.; Rahman, A.",
-        year: 2023,
-        journal: "Educational Data Mining (demo reference)",
-        keywords: ["Machine Learning", "Prediction", "Students"],
-        project: "Machine Learning Research",
-        fileName: "student-performance-demo.pdf",
-        bookmarked: true
-    },
-    {
-        id: 3,
-        title: "A Survey of Natural Language Processing Techniques",
-        authors: "Ahmed, S.; Das, R.",
-        year: 2022,
-        journal: "NLP Research (demo reference)",
-        keywords: ["NLP", "Text Processing", "Survey"],
-        project: "",
-        fileName: "",
-        bookmarked: false
-    },
-    {
-        id: 4,
-        title: "Data Mining Methods for Academic Research",
-        authors: "Islam, T.; Roy, N.",
-        year: 2025,
-        journal: "Research Methods (demo reference)",
-        keywords: ["Data Mining", "Research", "Analytics"],
-        project: "Literature Review",
-        fileName: "data-mining-demo.pdf",
-        bookmarked: false
-    }
-];
+const paperResultCount = document.getElementById("paperResultCount");
 
-function createElement(tag, className, text) {
-    const element = document.createElement(tag);
+const paperProjectSelect = document.getElementById("paperProject");
 
-    if (className) {
-        element.className = className;
-    }
+/* =========================================================
+   AUTHENTICATION
+========================================================= */
 
-    if (text !== undefined) {
-        element.textContent = text;
-    }
-
-    return element;
+function getAccessToken() {
+    return localStorage.getItem("rm_access_token");
 }
 
+function getRefreshToken() {
+    return localStorage.getItem("rm_refresh_token");
+}
+
+function redirectToLogin() {
+    alert("Your session has expired. Please log in again.");
+    window.location.href = "index.html";
+}
+
+async function refreshAccessToken() {
+    const refreshToken = getRefreshToken();
+
+    if (!refreshToken) {
+        redirectToLogin();
+        throw new Error("No refresh token available.");
+    }
+
+    const response = await fetch(`${API_BASE}token/refresh/`, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+            refresh: refreshToken
+        })
+    });
+
+    if (!response.ok) {
+        localStorage.removeItem("rm_access_token");
+        localStorage.removeItem("rm_refresh_token");
+
+        redirectToLogin();
+        throw new Error("Session expired.");
+    }
+
+    const data = await response.json();
+
+    localStorage.setItem("rm_access_token", data.access);
+
+    return data.access;
+}
+
+/* =========================================================
+   API REQUEST HANDLER
+========================================================= */
+
+async function apiRequest(endpoint, options = {}, retry = true) {
+    let token = getAccessToken();
+
+    if (!token) {
+        redirectToLogin();
+        throw new Error("Authentication required.");
+    }
+
+    const headers = {
+        ...(options.headers || {}),
+        "Authorization": `Bearer ${token}`
+    };
+
+    if (!(options.body instanceof FormData)) {
+        headers["Content-Type"] = "application/json";
+    }
+
+    let response;
+
+    try {
+        response = await fetch(`${API_BASE}${endpoint}`, {
+            ...options,
+            headers
+        });
+    } catch (error) {
+        throw new Error(
+            "Cannot connect to the backend. Make sure Django server is running."
+        );
+    }
+
+    if (response.status === 401 && retry) {
+        token = await refreshAccessToken();
+
+        return apiRequest(endpoint, options, false);
+    }
+
+    if (response.status === 401) {
+        redirectToLogin();
+        throw new Error("Authentication failed.");
+    }
+
+    if (!response.ok) {
+        let errorMessage = "Something went wrong.";
+
+        try {
+            const errorData = await response.json();
+
+            errorMessage = Object.entries(errorData)
+                .map(([field, messages]) => {
+                    const message = Array.isArray(messages)
+                        ? messages.join(", ")
+                        : messages;
+
+                    return `${field}: ${message}`;
+                })
+                .join("\n");
+
+        } catch (error) {
+            errorMessage = `Server error: ${response.status}`;
+        }
+
+        throw new Error(errorMessage);
+    }
+
+    if (response.status === 204) {
+        return null;
+    }
+
+    return response.json();
+}
+
+/* =========================================================
+   INITIALIZATION
+========================================================= */
+
+document.addEventListener("DOMContentLoaded", initializePaperLibrary);
+
+async function initializePaperLibrary() {
+    if (!getAccessToken()) {
+        redirectToLogin();
+        return;
+    }
+
+    setupEventListeners();
+
+    try {
+        await loadProjects();
+        await loadPapers();
+    } catch (error) {
+        console.error("Paper Library initialization error:", error);
+        showError(error.message);
+    }
+}
+
+/* =========================================================
+   EVENT LISTENERS
+========================================================= */
+
+function setupEventListeners() {
+
+    openUploadModal?.addEventListener("click", () => {
+        openModal(uploadModal);
+    });
+
+    closeUploadModal?.addEventListener("click", () => {
+        closeModal(uploadModal);
+    });
+
+    cancelUpload?.addEventListener("click", () => {
+        closeModal(uploadModal);
+    });
+
+    closePaperDetails?.addEventListener("click", () => {
+        closeModal(paperDetailsModal);
+    });
+
+    closePaperDetailsButton?.addEventListener("click", () => {
+        closeModal(paperDetailsModal);
+    });
+
+    uploadModal?.addEventListener("click", (event) => {
+        if (event.target === uploadModal) {
+            closeModal(uploadModal);
+        }
+    });
+
+    paperDetailsModal?.addEventListener("click", (event) => {
+        if (event.target === paperDetailsModal) {
+            closeModal(paperDetailsModal);
+        }
+    });
+
+    document.addEventListener("keydown", (event) => {
+        if (event.key === "Escape") {
+            closeModal(uploadModal);
+            closeModal(paperDetailsModal);
+        }
+    });
+
+    paperSearch?.addEventListener("input", renderPapers);
+    yearFilter?.addEventListener("change", renderPapers);
+    bookmarkFilter?.addEventListener("change", renderPapers);
+
+    paperForm?.addEventListener("submit", handleAddPaper);
+}
+
+/* =========================================================
+   MODAL FUNCTIONS
+========================================================= */
+
 function openModal(modal) {
+    if (!modal) return;
+
     modal.hidden = false;
+    document.body.classList.add("modal-open");
 }
 
 function closeModal(modal) {
+    if (!modal) return;
+
     modal.hidden = true;
+
+    if (
+        uploadModal?.hidden !== false &&
+        paperDetailsModal?.hidden !== false
+    ) {
+        document.body.classList.remove("modal-open");
+    }
 }
 
-document.getElementById("openUploadModal").addEventListener(
-    "click",
-    function () {
-        openModal(uploadModal);
-        document.getElementById("paperTitle").focus();
-    }
-);
+/* =========================================================
+   LOAD PROJECTS FROM BACKEND
+========================================================= */
 
-document.getElementById("closeUploadModal").addEventListener(
-    "click",
-    function () {
-        closeModal(uploadModal);
-    }
-);
+async function loadProjects() {
+    if (!paperProjectSelect) return;
 
-document.getElementById("cancelUpload").addEventListener(
-    "click",
-    function () {
-        closeModal(uploadModal);
-    }
-);
+    paperProjectSelect.innerHTML = `
+        <option value="">Loading projects...</option>
+    `;
 
-document.getElementById("closePaperDetails").addEventListener(
-    "click",
-    function () {
-        closeModal(detailsModal);
-    }
-);
+    try {
+        const data = await apiRequest("projects/");
 
-document.getElementById("closePaperDetailsButton").addEventListener(
-    "click",
-    function () {
-        closeModal(detailsModal);
-    }
-);
+        projects = Array.isArray(data)
+            ? data
+            : data.results || [];
 
-[uploadModal, detailsModal].forEach(function (modal) {
-    modal.addEventListener("click", function (event) {
-        if (event.target === modal) {
-            closeModal(modal);
-        }
+        populateProjectDropdown();
+
+    } catch (error) {
+        paperProjectSelect.innerHTML = `
+            <option value="">Unable to load projects</option>
+        `;
+
+        throw error;
+    }
+}
+
+function populateProjectDropdown() {
+    if (!paperProjectSelect) return;
+
+    paperProjectSelect.innerHTML = "";
+
+    if (projects.length === 0) {
+        paperProjectSelect.innerHTML = `
+            <option value="">No projects available</option>
+        `;
+
+        paperProjectSelect.disabled = true;
+
+        return;
+    }
+
+    paperProjectSelect.disabled = false;
+
+    const placeholder = document.createElement("option");
+
+    placeholder.value = "";
+    placeholder.textContent = "Select a research project";
+
+    paperProjectSelect.appendChild(placeholder);
+
+    projects.forEach(project => {
+        const option = document.createElement("option");
+
+        option.value = project.id;
+        option.textContent = project.title;
+
+        paperProjectSelect.appendChild(option);
     });
-});
+}
 
-document.addEventListener("keydown", function (event) {
-    if (event.key === "Escape") {
-        closeModal(uploadModal);
-        closeModal(detailsModal);
-    }
-});
+/* =========================================================
+   LOAD PAPERS FROM BACKEND
+========================================================= */
 
-// Populate year options from the demo data.
-function populateYearFilter() {
-    const years = [...new Set(papers.map(function (paper) {
-        return paper.year;
-    }))].sort(function (a, b) {
-        return b - a;
+async function loadPapers() {
+    const data = await apiRequest("papers/");
+
+    papers = Array.isArray(data)
+        ? data
+        : data.results || [];
+
+    papers.sort((a, b) => {
+        return new Date(b.created_at || 0) -
+               new Date(a.created_at || 0);
     });
 
-    years.forEach(function (year) {
-        const option = createElement("option", "", String(year));
-        option.value = String(year);
+    refreshYearFilter();
+    updateStatistics();
+    renderPapers();
+}
+
+/* =========================================================
+   STATISTICS
+========================================================= */
+
+function updateStatistics() {
+    if (totalPapersElement) {
+        totalPapersElement.textContent = papers.length;
+    }
+
+    const bookmarkedCount = papers.filter(
+        paper => paper.bookmarked
+    ).length;
+
+    if (bookmarkedPapersElement) {
+        bookmarkedPapersElement.textContent = bookmarkedCount;
+    }
+
+    /*
+       The current backend does not have a PDF field.
+       Therefore, PDF count cannot be retrieved from the API.
+    */
+
+    if (pdfPapersElement) {
+        pdfPapersElement.textContent = "—";
+    }
+}
+
+/* =========================================================
+   YEAR FILTER
+========================================================= */
+
+function refreshYearFilter() {
+    if (!yearFilter) return;
+
+    const selectedYear = yearFilter.value;
+
+    const years = [
+        ...new Set(
+            papers
+                .map(paper => Number(paper.year))
+                .filter(year => Number.isFinite(year))
+        )
+    ].sort((a, b) => b - a);
+
+    yearFilter.innerHTML = `
+        <option value="all">All Years</option>
+    `;
+
+    years.forEach(year => {
+        const option = document.createElement("option");
+
+        option.value = year;
+        option.textContent = year;
+
         yearFilter.appendChild(option);
     });
+
+    if (years.includes(Number(selectedYear))) {
+        yearFilter.value = selectedYear;
+    }
 }
 
+/* =========================================================
+   HTML ESCAPING
+========================================================= */
+
+function escapeHTML(value) {
+    return String(value ?? "").replace(/[&<>"']/g, character => {
+        const entities = {
+            "&": "&amp;",
+            "<": "&lt;",
+            ">": "&gt;",
+            '"': "&quot;",
+            "'": "&#039;"
+        };
+
+        return entities[character];
+    });
+}
+
+/* =========================================================
+   PROJECT NAME HELPER
+========================================================= */
+
+function getProjectName(projectId) {
+    const project = projects.find(
+        item => String(item.id) === String(projectId)
+    );
+
+    return project ? project.title : "Unknown Project";
+}
+
+/* =========================================================
+   RENDER PAPERS
+========================================================= */
+
 function renderPapers() {
-    papersGrid.replaceChildren();
+    if (!papersGrid) return;
 
-    const query = searchInput.value.trim().toLowerCase();
-    const selectedYear = yearFilter.value;
-    const onlyBookmarked = bookmarkFilter.value === "bookmarked";
+    const searchTerm = paperSearch
+        ? paperSearch.value.toLowerCase().trim()
+        : "";
 
-    const filteredPapers = papers.filter(function (paper) {
+    const selectedYear = yearFilter
+        ? yearFilter.value
+        : "all";
+
+    const selectedBookmark = bookmarkFilter
+        ? bookmarkFilter.value
+        : "all";
+
+    const filteredPapers = papers.filter(paper => {
+
         const searchableText = [
             paper.title,
             paper.authors,
             paper.journal,
-            paper.project,
-            paper.year,
-            ...paper.keywords
+            paper.keywords
         ].join(" ").toLowerCase();
 
-        const matchesSearch = searchableText.includes(query);
+        const matchesSearch = searchableText.includes(searchTerm);
+
         const matchesYear =
             selectedYear === "all" ||
             String(paper.year) === selectedYear;
 
         const matchesBookmark =
-            !onlyBookmarked || paper.bookmarked;
+            selectedBookmark === "all" ||
+            paper.bookmarked === true;
 
         return matchesSearch && matchesYear && matchesBookmark;
     });
 
-    filteredPapers.forEach(function (paper) {
-        papersGrid.appendChild(createPaperCard(paper));
+    papersGrid.innerHTML = "";
+
+    if (paperResultCount) {
+        paperResultCount.textContent =
+            `${filteredPapers.length} ${filteredPapers.length === 1 ? "paper" : "papers"}`;
+    }
+
+    if (emptyPapers) {
+        emptyPapers.hidden = filteredPapers.length !== 0;
+    }
+
+    filteredPapers.forEach(paper => {
+        const card = document.createElement("article");
+
+        card.className = "paper-card";
+
+        const projectName = getProjectName(paper.project);
+
+        const keywords = paper.keywords
+            ? paper.keywords.split(",").map(keyword => keyword.trim())
+            : [];
+
+        card.innerHTML = `
+            <div class="paper-card-header">
+                <span class="paper-year">
+                    ${escapeHTML(paper.year)}
+                </span>
+
+                <button
+                    type="button"
+                    class="bookmark-btn ${paper.bookmarked ? "active" : ""}"
+                    data-bookmark-id="${paper.id}"
+                    aria-label="Toggle bookmark"
+                    title="Toggle bookmark">
+                    ${paper.bookmarked ? "★" : "☆"}
+                </button>
+            </div>
+
+            <div class="paper-card-content">
+                <h3>${escapeHTML(paper.title)}</h3>
+
+                <p class="paper-authors">
+                    ${escapeHTML(paper.authors)}
+                </p>
+
+                <p class="paper-journal">
+                    ${escapeHTML(paper.journal || "Journal not specified")}
+                </p>
+
+                <div class="paper-keywords">
+                    ${keywords.map(keyword => `
+                        <span class="keyword-tag">
+                            ${escapeHTML(keyword)}
+                        </span>
+                    `).join("")}
+                </div>
+
+                <p class="paper-project">
+                    <strong>Project:</strong>
+                    ${escapeHTML(projectName)}
+                </p>
+            </div>
+
+            <div class="paper-card-footer">
+                <button
+                    type="button"
+                    class="view-paper-btn"
+                    data-details-id="${paper.id}">
+                    View Details
+                </button>
+            </div>
+        `;
+
+        papersGrid.appendChild(card);
     });
 
-    emptyMessage.hidden = filteredPapers.length !== 0;
-
-    document.getElementById("paperResultCount").textContent =
-        filteredPapers.length +
-        (filteredPapers.length === 1 ? " paper" : " papers");
-
-    updateStatistics();
+    attachCardEventListeners();
 }
 
-function createPaperCard(paper) {
-    const card = createElement("article", "paper-card");
+/* =========================================================
+   CARD EVENT LISTENERS
+========================================================= */
 
-    const top = createElement("div", "paper-card-top");
-    const typeIcon = createElement("div", "paper-type-icon", "PDF");
+function attachCardEventListeners() {
 
-    const bookmarkButton = createElement(
-        "button",
-        "paper-bookmark" + (paper.bookmarked ? " is-bookmarked" : ""),
-        paper.bookmarked ? "★" : "☆"
+    document.querySelectorAll("[data-bookmark-id]").forEach(button => {
+
+        button.addEventListener("click", async () => {
+            const paperId = button.dataset.bookmarkId;
+
+            await toggleBookmark(paperId);
+        });
+    });
+
+    document.querySelectorAll("[data-details-id]").forEach(button => {
+
+        button.addEventListener("click", () => {
+            const paperId = button.dataset.detailsId;
+
+            showPaperDetails(paperId);
+        });
+    });
+}
+
+/* =========================================================
+   BOOKMARK TOGGLE - BACKEND
+========================================================= */
+
+async function toggleBookmark(paperId) {
+    const paper = papers.find(
+        item => String(item.id) === String(paperId)
     );
 
-    bookmarkButton.type = "button";
-    bookmarkButton.setAttribute(
-        "aria-label",
-        paper.bookmarked ? "Remove bookmark" : "Bookmark paper"
-    );
-    bookmarkButton.setAttribute(
-        "aria-pressed",
-        String(paper.bookmarked)
-    );
-    bookmarkButton.title = paper.bookmarked
-        ? "Remove bookmark"
-        : "Add bookmark";
+    if (!paper) return;
 
-    bookmarkButton.addEventListener("click", function () {
-        paper.bookmarked = !paper.bookmarked;
+    const newBookmarkStatus = !paper.bookmarked;
+
+    try {
+        await apiRequest(`papers/${paperId}/`, {
+            method: "PATCH",
+            body: JSON.stringify({
+                bookmarked: newBookmarkStatus
+            })
+        });
+
+        paper.bookmarked = newBookmarkStatus;
+
+        updateStatistics();
         renderPapers();
-    });
 
-    top.append(typeIcon, bookmarkButton);
-
-    const title = createElement("h3", "", paper.title);
-    const authors = createElement("p", "paper-authors", paper.authors);
-    const publication = createElement(
-        "p",
-        "paper-publication",
-        paper.year + (paper.journal ? " · " + paper.journal : "")
-    );
-
-    const tags = createElement("div", "paper-tags");
-
-    paper.keywords.forEach(function (keyword) {
-        tags.appendChild(createElement("span", "paper-tag", keyword));
-    });
-
-    const footer = createElement("div", "paper-card-footer");
-
-    const fileLabel = createElement(
-        "span",
-        "paper-file-label",
-        paper.fileName ? "PDF: " + paper.fileName : "No PDF selected"
-    );
-
-    const detailsButton = createElement(
-        "button",
-        "paper-details-button",
-        "View details →"
-    );
-
-    detailsButton.type = "button";
-    detailsButton.addEventListener("click", function () {
-        showPaperDetails(paper);
-    });
-
-    footer.append(fileLabel, detailsButton);
-    card.append(top, title, authors, publication, tags, footer);
-
-    return card;
+    } catch (error) {
+        console.error("Bookmark error:", error);
+        showError(error.message);
+    }
 }
 
-function updateStatistics() {
-    document.getElementById("totalPapers").textContent = papers.length;
+/* =========================================================
+   PAPER DETAILS MODAL
+========================================================= */
 
-    document.getElementById("bookmarkedPapers").textContent =
-        papers.filter(function (paper) {
-            return paper.bookmarked;
-        }).length;
+function showPaperDetails(paperId) {
+    const paper = papers.find(
+        item => String(item.id) === String(paperId)
+    );
 
-    document.getElementById("pdfPapers").textContent =
-        papers.filter(function (paper) {
-            return Boolean(paper.fileName);
-        }).length;
+    if (!paper) return;
+
+    currentPaperId = paper.id;
+
+    const titleElement = document.getElementById("paperDetailsTitle");
+    const contentElement = document.getElementById("paperDetailsContent");
+
+    if (titleElement) {
+        titleElement.textContent = paper.title;
+    }
+
+    if (contentElement) {
+        contentElement.innerHTML = `
+            <div class="paper-details">
+
+                <div class="detail-item">
+                    <strong>Authors</strong>
+                    <p>${escapeHTML(paper.authors)}</p>
+                </div>
+
+                <div class="detail-item">
+                    <strong>Publication Year</strong>
+                    <p>${escapeHTML(paper.year)}</p>
+                </div>
+
+                <div class="detail-item">
+                    <strong>Journal / Conference</strong>
+                    <p>${escapeHTML(paper.journal || "Not specified")}</p>
+                </div>
+
+                <div class="detail-item">
+                    <strong>Keywords</strong>
+                    <p>${escapeHTML(paper.keywords || "No keywords added")}</p>
+                </div>
+
+                <div class="detail-item">
+                    <strong>Linked Project</strong>
+                    <p>${escapeHTML(getProjectName(paper.project))}</p>
+                </div>
+
+                <div class="detail-item">
+                    <strong>Bookmark</strong>
+                    <p>${paper.bookmarked ? "★ Bookmarked" : "☆ Not bookmarked"}</p>
+                </div>
+
+                <div class="detail-item">
+                    <strong>PDF</strong>
+                    <p>PDF upload is not currently supported by the backend.</p>
+                </div>
+
+            </div>
+        `;
+    }
+
+    openModal(paperDetailsModal);
 }
 
-function showPaperDetails(paper) {
-    const title = document.getElementById("paperDetailsTitle");
-    const content = document.getElementById("paperDetailsContent");
+/* =========================================================
+   ADD NEW PAPER - BACKEND
+========================================================= */
 
-    title.textContent = paper.title;
-    content.replaceChildren();
-
-    const details = [
-        ["Authors", paper.authors],
-        ["Publication Year", String(paper.year)],
-        ["Journal / Conference", paper.journal || "Not provided"],
-        ["Research Project", paper.project || "Not linked to a project"],
-        ["Keywords", paper.keywords.join(", ") || "None"],
-        ["PDF", paper.fileName || "No PDF selected"],
-        ["Bookmark", paper.bookmarked ? "Bookmarked" : "Not bookmarked"]
-    ];
-
-    details.forEach(function (item) {
-        const row = createElement("div", "paper-detail-row");
-        const heading = createElement("h3", "", item[0]);
-        const value = createElement("p", "", item[1]);
-
-        row.append(heading, value);
-        content.appendChild(row);
-    });
-
-    openModal(detailsModal);
-}
-
-paperForm.addEventListener("submit", function (event) {
+async function handleAddPaper(event) {
     event.preventDefault();
+
+    if (!paperForm) return;
+
+    if (projects.length === 0) {
+        showError("You need to create a research project before adding a paper.");
+        return;
+    }
 
     const title = document.getElementById("paperTitle").value.trim();
     const authors = document.getElementById("paperAuthors").value.trim();
-    const yearValue = document.getElementById("paperYear").value;
+
+    const year = Number(
+        document.getElementById("paperYear").value
+    );
+
     const journal = document.getElementById("paperJournal").value.trim();
 
-    const keywordsValue =
-        document.getElementById("paperKeywords").value.trim();
+    const keywords = document.getElementById("paperKeywords").value.trim();
 
-    const project = document.getElementById("paperProject").value.trim();
-    const file = paperFileInput.files[0] || null;
-    const year = Number(yearValue);
-    const currentYear = new Date().getFullYear();
+    const projectId = paperProjectSelect.value;
 
-    if (!title || !authors || !yearValue) {
-        alert("Please fill in the required fields.");
+    const paperFile = document.getElementById("paperFile");
+
+    if (!title || !authors || !year || !projectId) {
+        showError("Please fill in all required fields.");
         return;
     }
 
-    if (!Number.isInteger(year) || year < 1900 || year > currentYear) {
-        alert("Please enter a valid publication year.");
+    if (!Number.isInteger(year) || year < 1900) {
+        showError("Please enter a valid publication year.");
         return;
     }
 
-    if (file && file.type !== "application/pdf" &&
-        !file.name.toLowerCase().endsWith(".pdf")) {
-        alert("Please select a PDF file.");
+    if (!projects.some(project => String(project.id) === String(projectId))) {
+        showError("Please select a valid research project.");
         return;
     }
 
-    const duplicate = papers.some(function (paper) {
-        return paper.title.toLowerCase() === title.toLowerCase();
-    });
+    if (paperFile?.files.length > 0) {
+        const file = paperFile.files[0];
 
-    if (duplicate) {
-        alert("A paper with this title already exists in the demo library.");
-        return;
+        if (file.type !== "application/pdf") {
+            showError("Please select a valid PDF file.");
+            return;
+        }
     }
 
-    const keywords = keywordsValue
-        ? keywordsValue.split(",").map(function (keyword) {
-            return keyword.trim();
-        }).filter(Boolean)
-        : [];
+    const submitButton = paperForm.querySelector(
+        'button[type="submit"]'
+    );
 
-    papers.unshift({
-        id: nextPaperId++,
+    if (submitButton) {
+        submitButton.disabled = true;
+        submitButton.textContent = "Saving...";
+    }
+
+    const paperData = {
         title: title,
         authors: authors,
         year: year,
         journal: journal,
         keywords: keywords,
-        project: project,
-        fileName: file ? file.name : "",
+        project: Number(projectId),
         bookmarked: false
-    });
+    };
 
-    paperForm.reset();
-    closeModal(uploadModal);
+    try {
+        await apiRequest("papers/", {
+            method: "POST",
+            body: JSON.stringify(paperData)
+        });
 
-    refreshYearFilter();
-    renderPapers();
+        paperForm.reset();
 
-    alert(
-        "Paper added to the demo library!\n\n" +
-        "Note: the paper information and PDF are not uploaded to a server."
-    );
-});
+        closeModal(uploadModal);
 
-function refreshYearFilter() {
-    const selectedYear = yearFilter.value;
+        await loadPapers();
 
-    yearFilter.replaceChildren();
+        alert("Research paper added successfully!");
 
-    const allOption = createElement("option", "", "All Years");
-    allOption.value = "all";
-    yearFilter.appendChild(allOption);
+    } catch (error) {
+        console.error("Add paper error:", error);
+        showError(error.message);
 
-    const years = [...new Set(papers.map(function (paper) {
-        return paper.year;
-    }))].sort(function (a, b) {
-        return b - a;
-    });
-
-    years.forEach(function (year) {
-        const option = createElement("option", "", String(year));
-        option.value = String(year);
-        yearFilter.appendChild(option);
-    });
-
-    yearFilter.value = years.includes(Number(selectedYear))
-        ? selectedYear
-        : "all";
+    } finally {
+        if (submitButton) {
+            submitButton.disabled = false;
+            submitButton.textContent = "Add Paper";
+        }
+    }
 }
 
-searchInput.addEventListener("input", renderPapers);
-yearFilter.addEventListener("change", renderPapers);
-bookmarkFilter.addEventListener("change", renderPapers);
+/* =========================================================
+   ERROR HANDLING
+========================================================= */
 
-populateYearFilter();
-renderPapers();
+function showError(message) {
+    alert(message || "Something went wrong. Please try again.");
+}
